@@ -18,8 +18,8 @@ jest.mock('../../../scripts/modules/utils.js', () => ({
 
 // Import modules after mocking
 import fs from 'fs';
-import { convertRuleToProfileRule } from '../../../src/utils/rule-transformer.js';
 import { kiroProfile } from '../../../src/profiles/kiro.js';
+import { convertRuleToProfileRule } from '../../../src/utils/rule-transformer.js';
 
 describe('Kiro Rule Transformer', () => {
 	// Set up spies on the mocked modules
@@ -219,7 +219,8 @@ Use the .mdc extension for all rule files.`;
 			'rules/dev_workflow.mdc': 'dev_workflow.md',
 			'rules/self_improve.mdc': 'self_improve.md',
 			'rules/taskmaster.mdc': 'taskmaster.md',
-			'rules/taskmaster_hooks_workflow.mdc': 'taskmaster_hooks_workflow.md'
+			'rules/taskmaster_hooks_workflow.mdc': 'taskmaster_hooks_workflow.md',
+			'rules/hamster.mdc': 'hamster.md'
 		});
 	});
 

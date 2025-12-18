@@ -3,15 +3,16 @@
  * Tool to append additional information to a specific subtask
  */
 
-import { z } from 'zod';
+import { TaskIdSchemaForMcp } from '@tm/core';
 import {
-	handleApiResult,
 	createErrorResponse,
+	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import { updateSubtaskByIdDirect } from '../core/task-master-core.js';
 import { findTasksPath } from '../core/utils/path-utils.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the update-subtask tool with the MCP server
@@ -23,11 +24,9 @@ export function registerUpdateSubtaskTool(server) {
 		description:
 			'Appends timestamped information to a specific subtask without replacing existing content. If you just want to update the subtask status, use set_task_status instead.',
 		parameters: z.object({
-			id: z
-				.string()
-				.describe(
-					'ID of the subtask to update in format "parentId.subtaskId" (e.g., "5.2"). Parent ID is the ID of the task that contains the subtask.'
-				),
+			id: TaskIdSchemaForMcp.describe(
+				'ID of the subtask to update in format "parentId.subtaskId" (e.g., "5.2"). Parent ID is the ID of the task that contains the subtask.'
+			),
 			prompt: z.string().describe('Information to add to the subtask'),
 			research: z
 				.boolean()
@@ -83,13 +82,12 @@ export function registerUpdateSubtaskTool(server) {
 					);
 				}
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error updating subtask',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error updating subtask',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(
 					`Critical error in ${toolName} tool execute: ${error.message}`

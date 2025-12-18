@@ -1,5 +1,670 @@
 # task-master-ai
 
+## 0.39.0-rc.0
+
+### Minor Changes
+
+- [#1521](https://github.com/eyaltoledano/claude-task-master/pull/1521) [`353e3bf`](https://github.com/eyaltoledano/claude-task-master/commit/353e3bffd6df528dc19f7c5790564d0dead14c6d) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Enhanced task metadata display for remote/team mode tasks
+  - Tasks now display rich implementation guidance in team mode including:
+    - **Relevant Files**: Files to create, modify, or reference with descriptions
+    - **Codebase Patterns**: Coding patterns and conventions to follow
+    - **Existing Infrastructure**: Code and utilities to leverage
+    - **Scope Boundaries**: What's in and out of scope for the task
+    - **Implementation Approach**: Step-by-step guidance
+    - **Technical Constraints**: Requirements and limitations
+    - **Acceptance Criteria**: Definition of done checklist
+    - **Skills & Category**: Task classification and required expertise
+  - How to see the new task details:
+    1. Create a brief on tryhamster.com
+    2. Generate the plan of the brief
+    3. View subtasks
+
+- [#1525](https://github.com/eyaltoledano/claude-task-master/pull/1525) [`1c2228d`](https://github.com/eyaltoledano/claude-task-master/commit/1c2228dbb618e522798c4484b74c1508f13d61d6) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add tool search tool for Claude Code MCP server and enable deferred MCP loading
+  - Added new tool search tool capabilities for the Taskmaster MCP in Claude Code
+  - Running `task-master rules add claude` now automatically configures your shell (`~/.zshrc`, `~/.bashrc`, or PowerShell profile) with `ENABLE_EXPERIMENTAL_MCP_CLI=true` to enable deferred MCP loading
+  - **Context savings**: Deferred loading saves ~16% of Claude Code's 200k context window (~33k tokens for Task Master alone). Savings apply to all MCP servers, so total savings may be higher depending on your setup.
+
+### Patch Changes
+
+- [#1310](https://github.com/eyaltoledano/claude-task-master/pull/1310) [`4b6570e`](https://github.com/eyaltoledano/claude-task-master/commit/4b6570e300eedb265af215c0ca6baeb772d42e4a) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix Azure OpenAI provider to use correct deployment-based URL format
+  - Add Azure OpenAI documentation page <https://docs.task-master.dev/providers/azure>
+
+## 0.38.0
+
+### Minor Changes
+
+- [#1461](https://github.com/eyaltoledano/claude-task-master/pull/1461) [`9ee63e0`](https://github.com/eyaltoledano/claude-task-master/commit/9ee63e01db4308cf248be3855949c7cd86272b9b) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add operating mode filtering for slash commands and rules
+
+  Solo mode and team mode now have distinct sets of commands and rules:
+  - **Solo mode**: Local file-based storage commands (parse-prd, add-task, expand, etc.) plus common commands
+  - **Team mode**: Team-specific commands (goham) plus common commands (show-task, list-tasks, help, etc.)
+
+  Both modes share common commands for viewing and navigating tasks. The difference is:
+  - Solo users get commands for local file management (PRD parsing, task expansion, dependencies)
+  - Team users get Hamster cloud integration commands instead
+
+  When switching modes (e.g., from solo to team), all existing TaskMaster commands and rules are automatically cleaned up before adding the new mode's files. This prevents orphaned commands/rules from previous modes.
+
+  The operating mode is auto-detected from config or auth status, and can be overridden with `--mode=solo|team` flag on the `rules` command.
+
+- [#1461](https://github.com/eyaltoledano/claude-task-master/pull/1461) [`9ee63e0`](https://github.com/eyaltoledano/claude-task-master/commit/9ee63e01db4308cf248be3855949c7cd86272b9b) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add Taskmaster slash commands for:
+  - Roo
+  - Cursor
+  - Codex
+  - Gemini
+  - Opencode
+
+  Add them with `task-master rules add <provider>`
+
+- [#1508](https://github.com/eyaltoledano/claude-task-master/pull/1508) [`69ac463`](https://github.com/eyaltoledano/claude-task-master/commit/69ac46351eac8e1c3f58b203b2a618bf6114c000) Thanks [@ben-vargas](https://github.com/ben-vargas)! - Added support for new OpenAI models with reasoning effort configuration:
+  - `gpt-5.1` (codex-cli & openai): supports none, low, medium, high reasoning
+  - `gpt-5.1-codex-max` (codex-cli & openai): supports none, low, medium, high, xhigh reasoning
+  - `gpt-5.2` (codex-cli & openai): supports none, low, medium, high, xhigh reasoning
+  - `gpt-5.2-pro` (openai only): supports medium, high, xhigh reasoning
+
+  Updated ai-sdk-provider-codex-cli dependency to ^0.7.0.
+
+## 0.38.0-rc.1
+
+### Minor Changes
+
+- [#1461](https://github.com/eyaltoledano/claude-task-master/pull/1461) [`9ee63e0`](https://github.com/eyaltoledano/claude-task-master/commit/9ee63e01db4308cf248be3855949c7cd86272b9b) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add operating mode filtering for slash commands and rules
+
+  Solo mode and team mode now have distinct sets of commands and rules:
+  - **Solo mode**: Local file-based storage commands (parse-prd, add-task, expand, etc.) plus common commands
+  - **Team mode**: Team-specific commands (goham) plus common commands (show-task, list-tasks, help, etc.)
+
+  Both modes share common commands for viewing and navigating tasks. The difference is:
+  - Solo users get commands for local file management (PRD parsing, task expansion, dependencies)
+  - Team users get Hamster cloud integration commands instead
+
+  When switching modes (e.g., from solo to team), all existing TaskMaster commands and rules are automatically cleaned up before adding the new mode's files. This prevents orphaned commands/rules from previous modes.
+
+  The operating mode is auto-detected from config or auth status, and can be overridden with `--mode=solo|team` flag on the `rules` command.
+
+- [#1461](https://github.com/eyaltoledano/claude-task-master/pull/1461) [`9ee63e0`](https://github.com/eyaltoledano/claude-task-master/commit/9ee63e01db4308cf248be3855949c7cd86272b9b) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add Taskmaster slash commands for:
+  - Roo
+  - Cursor
+  - Codex
+  - Gemini
+  - Opencode
+
+  Add them with `task-master rules add <provider>`
+
+## 0.38.0-rc.0
+
+### Minor Changes
+
+- [#1508](https://github.com/eyaltoledano/claude-task-master/pull/1508) [`69ac463`](https://github.com/eyaltoledano/claude-task-master/commit/69ac46351eac8e1c3f58b203b2a618bf6114c000) Thanks [@ben-vargas](https://github.com/ben-vargas)! - Added support for new OpenAI models with reasoning effort configuration:
+  - `gpt-5.1` (codex-cli & openai): supports none, low, medium, high reasoning
+  - `gpt-5.1-codex-max` (codex-cli & openai): supports none, low, medium, high, xhigh reasoning
+  - `gpt-5.2` (codex-cli & openai): supports none, low, medium, high, xhigh reasoning
+  - `gpt-5.2-pro` (openai only): supports medium, high, xhigh reasoning
+
+  Updated ai-sdk-provider-codex-cli dependency to ^0.7.0.
+
+## 0.37.2
+
+### Patch Changes
+
+- [#1492](https://github.com/eyaltoledano/claude-task-master/pull/1492) [`071dfc6`](https://github.com/eyaltoledano/claude-task-master/commit/071dfc6be9abe30909157ea72e026036721cea1d) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix login issues for users whose browsers or firewalls were blocking CLI authentication
+
+- [#1491](https://github.com/eyaltoledano/claude-task-master/pull/1491) [`0e908be`](https://github.com/eyaltoledano/claude-task-master/commit/0e908be43af1075bae1fd7f6b7a6fad8a131dd56) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add `tm/` prefix to autopilot branch names
+  - Team mode branches now follow the `tm/<org-slug>/task-<id>` naming convention for better organization.
+  - Solves issue some users were having regarding not being able to start workflow on master Taskmaster tag
+
+## 0.37.2
+
+### Patch Changes
+
+- [#1492](https://github.com/eyaltoledano/claude-task-master/pull/1492) [`071dfc6`](https://github.com/eyaltoledano/claude-task-master/commit/071dfc6be9abe30909157ea72e026036721cea1d) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix login issues for users whose browsers or firewalls were blocking CLI authentication
+
+- [#1491](https://github.com/eyaltoledano/claude-task-master/pull/1491) [`0e908be`](https://github.com/eyaltoledano/claude-task-master/commit/0e908be43af1075bae1fd7f6b7a6fad8a131dd56) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add `tm/` prefix to autopilot branch names
+  - Team mode branches now follow the `tm/<org-slug>/task-<id>` naming convention for better organization.
+  - Solves issue some users were having regarding not being able to start workflow on master Taskmaster tag
+
+## 0.37.2-rc.0
+
+### Patch Changes
+
+- [#1492](https://github.com/eyaltoledano/claude-task-master/pull/1492) [`071dfc6`](https://github.com/eyaltoledano/claude-task-master/commit/071dfc6be9abe30909157ea72e026036721cea1d) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix login issues for users whose browsers or firewalls were blocking CLI authentication
+
+- [#1491](https://github.com/eyaltoledano/claude-task-master/pull/1491) [`0e908be`](https://github.com/eyaltoledano/claude-task-master/commit/0e908be43af1075bae1fd7f6b7a6fad8a131dd56) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add `tm/` prefix to autopilot branch names
+  - Team mode branches now follow the `tm/<org-slug>/task-<id>` naming convention for better organization.
+  - Solves issue some users were having regarding not being able to start workflow on master Taskmaster tag
+
+## 0.37.1
+
+### Patch Changes
+
+- [#1477](https://github.com/eyaltoledano/claude-task-master/pull/1477) [`b0199f1`](https://github.com/eyaltoledano/claude-task-master/commit/b0199f1cfa643051f90406d69e90ea916d434e6a) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Improve auth-related error handling
+
+- [#1478](https://github.com/eyaltoledano/claude-task-master/pull/1478) [`6ff330f`](https://github.com/eyaltoledano/claude-task-master/commit/6ff330f8c2bc6e534e0a883c770e8394d7ad5fa8) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Increase page size of brief selection (interactive cli setup)
+
+## 0.37.1-rc.0
+
+### Patch Changes
+
+- [#1478](https://github.com/eyaltoledano/claude-task-master/pull/1478) [`6ff330f`](https://github.com/eyaltoledano/claude-task-master/commit/6ff330f8c2bc6e534e0a883c770e8394d7ad5fa8) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Increase page size of brief selection (interactive cli setup)
+
+## 0.37.0
+
+### Minor Changes
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add Hamster integration for `parse-prd` command
+
+  Your tasks are only as good as the context behind them. Now when you run `parse-prd`, you can choose to bring your PRD to Hamster instead of parsing locally.
+
+  **New Workflow Choice**
+  - **Parse locally**: PRD becomes a task list in a local JSON file - great for quick prototyping and vibing solo
+  - **Bring it to Hamster**: PRD becomes a living brief connected to your team, codebase, and agents
+
+  **Why Hamster?**
+  - Tasks live in a central place with real-time sync across your team
+  - Collaborate on your PRD/brief together, generate tasks on Hamster, bring them into Taskmaster
+  - No API keys needed - Hamster handles all AI inference, just need a Hamster account
+
+  **Hamster Integration**
+  - OAuth login flow when choosing Hamster (same as export command)
+  - Create brief directly from PRD content with auto-generated title/description
+  - Progress bar showing task generation phases (analyzing → generating → processing)
+  - Invite teammates during brief creation
+  - Auto-set context to new brief when complete
+
+  **Quality of Life**
+  - Clickable brief URL and team invite URL in terminal
+  - Shows task count as they're generated
+  - Graceful fallback if generation takes longer than expected
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Redesign `tm init` with clearer workflow selection and reduced noise
+
+  Choose how you want to plan: Solo with Taskmaster or Together with Hamster. The new init flow guides you through setup with context-appropriate options and cleaner output.
+
+  **New Workflow Selection**
+  - Clear framing: "You need a plan before you execute. How do you want to build it?"
+  - **Solo (Taskmaster)**: Parse PRD → structured tasks → AI agent executes with control
+  - **Together (Hamster)**: Team writes brief → Hamster refines → aligned execution with Taskmaster
+
+  **Cleaner Experience**
+  - Optional AI IDE rules setup (Y/n prompt instead of always showing)
+  - 15+ log messages moved to debug level - much less noise
+  - Skip Git prompts when using Hamster (not needed for cloud storage)
+  - Skip AI model configuration for Hamster (uses Hamster's AI)
+
+  **Hamster Integration**
+  - OAuth login flow when choosing Hamster workflow
+  - Context-aware guidance based on your workflow choice
+
+  **Quality of Life**
+  - Run `tm rules --setup` anytime if you declined during init
+  - Use `--yes` flag for fully non-interactive setup
+  - Use `--rules cursor,windsurf` to specify rules upfront
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Introduce `tm export` command - bring Task Master to your team
+
+  Share your task plans with teammates by exporting local tasks to collaborative briefs on Hamster. Select which tags to export, invite team members, and start collaborating instantly.
+
+  **New `tm export` Command**
+  - Export your local tasks to shareable team briefs
+  - Hamster will reverse engineer your PRD based on your tasks (reverse parse prd!)
+  - Select multiple tags to export in one go, import all tasks across tags to Hamster
+  - Hamster will generate brief titles and descriptions from your task content
+  - Automatically sets your CLI context to the new brief
+  - All AI calls handled by Hamster, zero API keys needed - just a Hamster account!
+
+  **Team Collaboration**
+  - Invite teammates during export with `-I, --invite` flag
+  - Add up to 10 team members by email
+  - See invitation status: sent, already a member, or error
+
+  **Quality of Life Improvements**
+  - New `tm login` / `tm logout` shortcuts
+  - Display ID shortcuts: `tm show ham31` now works (normalizes to HAM-31)
+  - Better task rendering with proper HTML/Markdown support
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add simpler positional syntax and Hamster-aware UI improvements
+  - **Simpler command syntax**: Use positional arguments without flags
+    - `tm update-task 1 Added implementation` (no quotes needed for multi-word prompts)
+    - `tm status 1 done` (new alias for set-status) or `tm set-status 1,1.1,2 in-progress`
+    - `tm list done` or `tm list in-progress` or `tm list all` (shortcut for --with-subtasks)
+  - **Hamster-aware help**: Context-specific command list when connected to Hamster
+    - Shows only relevant commands for Hamster workflow
+    - Beautiful boxed section headers with improved spacing
+    - Clear usage examples with new positional syntax
+    - Better visual alignment and cleaner formatting
+  - **Progress indicators**: Added loading spinner to `update-task` when connected to Hamster
+    - Shows "Updating task X on Hamster..." during AI processing
+    - Cleaner, more responsive UX for long-running operations
+  - **Improved context display**: Show 'Brief: [name]' instead of 'tag: [name]' when connected to Hamster
+  - **Cleaner Hamster updates**: Simplified update display (removed redundant Mode/Prompt info)
+  - **Smart messaging**: "NO TASKS AVAILABLE" warning only shows when literally no tasks exist
+    - Removed misleading messages when tasks are just completed/in-progress/blocked
+    - Better UX for filtered task lists
+  - **Updated help everywhere**: Regular help menu now shows new positional argument syntax
+    - All suggested actions updated across commands
+    - Consistent syntax in all UI components
+  - **Auto-detection**: Automatically detects Hamster connection for better UX
+  - **Backward compatible**: All old flag syntax still works (`--id`, `--status`, etc.)
+
+### Patch Changes
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add Sentry integration for error tracking and AI telemetry monitoring
+  - **Sentry Integration**: Added comprehensive error tracking and AI operation monitoring using Sentry with Vercel AI SDK integration
+  - **AI Telemetry**: All AI operations (generateText, streamText, generateObject, streamObject) now automatically track spans, token usage, prompts, and responses
+  - **MCP Server Instrumentation**: Wrapped FastMCP server with `Sentry.wrapMcpServerWithSentry()` to automatically capture spans for all MCP tool interactions
+  - **Privacy Controls**: Added `anonymousTelemetry` config option (default: true) allowing local storage users to opt out of telemetry
+  - **Complete Coverage**: Telemetry enabled for all AI commands including parse-prd, expand, update-task, analyze-complexity, and research
+  - **Internal Telemetry**: Sentry DSN is hardcoded internally for Task Master's telemetry (not user-configurable)
+  - **Dual Initialization**: Automatic Sentry initialization in both CLI (scripts/dev.js) and MCP Server (mcp-server/src/index.js) with full MCP instrumentation
+
+- [#1463](https://github.com/eyaltoledano/claude-task-master/pull/1463) [`55595f6`](https://github.com/eyaltoledano/claude-task-master/commit/55595f680c8b52b5421d3e0c7640bf2050efe44f) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix package issue in earlier rc
+
+## 0.36.0-rc.3
+
+### Minor Changes
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add Hamster integration for `parse-prd` command
+
+  Your tasks are only as good as the context behind them. Now when you run `parse-prd`, you can choose to bring your PRD to Hamster instead of parsing locally.
+
+  **New Workflow Choice**
+  - **Parse locally**: PRD becomes a task list in a local JSON file - great for quick prototyping and vibing solo
+  - **Bring it to Hamster**: PRD becomes a living brief connected to your team, codebase, and agents
+
+  **Why Hamster?**
+  - Tasks live in a central place with real-time sync across your team
+  - Collaborate on your PRD/brief together, generate tasks on Hamster, bring them into Taskmaster
+  - No API keys needed - Hamster handles all AI inference, just need a Hamster account
+
+  **Hamster Integration**
+  - OAuth login flow when choosing Hamster (same as export command)
+  - Create brief directly from PRD content with auto-generated title/description
+  - Progress bar showing task generation phases (analyzing → generating → processing)
+  - Invite teammates during brief creation
+  - Auto-set context to new brief when complete
+
+  **Quality of Life**
+  - Clickable brief URL and team invite URL in terminal
+  - Shows task count as they're generated
+  - Graceful fallback if generation takes longer than expected
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Redesign `tm init` with clearer workflow selection and reduced noise
+
+  Choose how you want to plan: Solo with Taskmaster or Together with Hamster. The new init flow guides you through setup with context-appropriate options and cleaner output.
+
+  **New Workflow Selection**
+  - Clear framing: "You need a plan before you execute. How do you want to build it?"
+  - **Solo (Taskmaster)**: Parse PRD → structured tasks → AI agent executes with control
+  - **Together (Hamster)**: Team writes brief → Hamster refines → aligned execution with Taskmaster
+
+  **Cleaner Experience**
+  - Optional AI IDE rules setup (Y/n prompt instead of always showing)
+  - 15+ log messages moved to debug level - much less noise
+  - Skip Git prompts when using Hamster (not needed for cloud storage)
+  - Skip AI model configuration for Hamster (uses Hamster's AI)
+
+  **Hamster Integration**
+  - OAuth login flow when choosing Hamster workflow
+  - Context-aware guidance based on your workflow choice
+
+  **Quality of Life**
+  - Run `tm rules --setup` anytime if you declined during init
+  - Use `--yes` flag for fully non-interactive setup
+  - Use `--rules cursor,windsurf` to specify rules upfront
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Introduce `tm export` command - bring Task Master to your team
+
+  Share your task plans with teammates by exporting local tasks to collaborative briefs on Hamster. Select which tags to export, invite team members, and start collaborating instantly.
+
+  **New `tm export` Command**
+  - Export your local tasks to shareable team briefs
+  - Hamster will reverse engineer your PRD based on your tasks (reverse parse prd!)
+  - Select multiple tags to export in one go, import all tasks across tags to Hamster
+  - Hamster will generate brief titles and descriptions from your task content
+  - Automatically sets your CLI context to the new brief
+  - All AI calls handled by Hamster, zero API keys needed - just a Hamster account!
+
+  **Team Collaboration**
+  - Invite teammates during export with `-I, --invite` flag
+  - Add up to 10 team members by email
+  - See invitation status: sent, already a member, or error
+
+  **Quality of Life Improvements**
+  - New `tm login` / `tm logout` shortcuts
+  - Display ID shortcuts: `tm show ham31` now works (normalizes to HAM-31)
+  - Better task rendering with proper HTML/Markdown support
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add simpler positional syntax and Hamster-aware UI improvements
+  - **Simpler command syntax**: Use positional arguments without flags
+    - `tm update-task 1 Added implementation` (no quotes needed for multi-word prompts)
+    - `tm status 1 done` (new alias for set-status) or `tm set-status 1,1.1,2 in-progress`
+    - `tm list done` or `tm list in-progress` or `tm list all` (shortcut for --with-subtasks)
+  - **Hamster-aware help**: Context-specific command list when connected to Hamster
+    - Shows only relevant commands for Hamster workflow
+    - Beautiful boxed section headers with improved spacing
+    - Clear usage examples with new positional syntax
+    - Better visual alignment and cleaner formatting
+  - **Progress indicators**: Added loading spinner to `update-task` when connected to Hamster
+    - Shows "Updating task X on Hamster..." during AI processing
+    - Cleaner, more responsive UX for long-running operations
+  - **Improved context display**: Show 'Brief: [name]' instead of 'tag: [name]' when connected to Hamster
+  - **Cleaner Hamster updates**: Simplified update display (removed redundant Mode/Prompt info)
+  - **Smart messaging**: "NO TASKS AVAILABLE" warning only shows when literally no tasks exist
+    - Removed misleading messages when tasks are just completed/in-progress/blocked
+    - Better UX for filtered task lists
+  - **Updated help everywhere**: Regular help menu now shows new positional argument syntax
+    - All suggested actions updated across commands
+    - Consistent syntax in all UI components
+  - **Auto-detection**: Automatically detects Hamster connection for better UX
+  - **Backward compatible**: All old flag syntax still works (`--id`, `--status`, etc.)
+
+### Patch Changes
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add Sentry integration for error tracking and AI telemetry monitoring
+  - **Sentry Integration**: Added comprehensive error tracking and AI operation monitoring using Sentry with Vercel AI SDK integration
+  - **AI Telemetry**: All AI operations (generateText, streamText, generateObject, streamObject) now automatically track spans, token usage, prompts, and responses
+  - **MCP Server Instrumentation**: Wrapped FastMCP server with `Sentry.wrapMcpServerWithSentry()` to automatically capture spans for all MCP tool interactions
+  - **Privacy Controls**: Added `anonymousTelemetry` config option (default: true) allowing local storage users to opt out of telemetry
+  - **Complete Coverage**: Telemetry enabled for all AI commands including parse-prd, expand, update-task, analyze-complexity, and research
+  - **Internal Telemetry**: Sentry DSN is hardcoded internally for Task Master's telemetry (not user-configurable)
+  - **Dual Initialization**: Automatic Sentry initialization in both CLI (scripts/dev.js) and MCP Server (mcp-server/src/index.js) with full MCP instrumentation
+
+- [#1463](https://github.com/eyaltoledano/claude-task-master/pull/1463) [`55595f6`](https://github.com/eyaltoledano/claude-task-master/commit/55595f680c8b52b5421d3e0c7640bf2050efe44f) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix package issue in earlier rc
+
+## 0.36.0
+
+### Minor Changes
+
+- [#1446](https://github.com/eyaltoledano/claude-task-master/pull/1446) [`2316e94`](https://github.com/eyaltoledano/claude-task-master/commit/2316e94b288915bb906e1a61a87f59e291594fef) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Bring back `task-master generate` as a command and mcp tool (after popular demand)
+  - Generated files are now `.md` instead of `.txt`
+    - They also follow the markdownlint format making them look like more standard md files
+  - added parameters to generate allowing you to generate with the `--tag` flag
+    - If I am on an active tag and want to generate files from another tag, I can with the tag parameter
+  - See `task-master generate --help` for more information.
+
+- [#1454](https://github.com/eyaltoledano/claude-task-master/pull/1454) [`38ff7eb`](https://github.com/eyaltoledano/claude-task-master/commit/38ff7ebbc029919ea4cd5257573efbf1ea2f0eeb) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add Hamster rules to task-master rules
+
+## 0.36.0
+
+### Minor Changes
+
+- [#1446](https://github.com/eyaltoledano/claude-task-master/pull/1446) [`2316e94`](https://github.com/eyaltoledano/claude-task-master/commit/2316e94b288915bb906e1a61a87f59e291594fef) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Bring back `task-master generate` as a command and mcp tool (after popular demand)
+  - Generated files are now `.md` instead of `.txt`
+    - They also follow the markdownlint format making them look like more standard md files
+  - added parameters to generate allowing you to generate with the `--tag` flag
+    - If I am on an active tag and want to generate files from another tag, I can with the tag parameter
+  - See `task-master generate --help` for more information.
+
+- [#1454](https://github.com/eyaltoledano/claude-task-master/pull/1454) [`38ff7eb`](https://github.com/eyaltoledano/claude-task-master/commit/38ff7ebbc029919ea4cd5257573efbf1ea2f0eeb) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add Hamster rules to task-master rules
+
+## 0.36.0-rc.2
+
+### Patch Changes
+
+- [#1463](https://github.com/eyaltoledano/claude-task-master/pull/1463) [`55595f6`](https://github.com/eyaltoledano/claude-task-master/commit/55595f680c8b52b5421d3e0c7640bf2050efe44f) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix package issue in earlier rc
+
+## 0.36.0-rc.1
+
+### Minor Changes
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add Hamster integration for `parse-prd` command
+
+  Your tasks are only as good as the context behind them. Now when you run `parse-prd`, you can choose to bring your PRD to Hamster instead of parsing locally.
+
+  **New Workflow Choice**
+  - **Parse locally**: PRD becomes a task list in a local JSON file - great for quick prototyping and vibing solo
+  - **Bring it to Hamster**: PRD becomes a living brief connected to your team, codebase, and agents
+
+  **Why Hamster?**
+  - Tasks live in a central place with real-time sync across your team
+  - Collaborate on your PRD/brief together, generate tasks on Hamster, bring them into Taskmaster
+  - No API keys needed - Hamster handles all AI inference, just need a Hamster account
+
+  **Hamster Integration**
+  - OAuth login flow when choosing Hamster (same as export command)
+  - Create brief directly from PRD content with auto-generated title/description
+  - Progress bar showing task generation phases (analyzing → generating → processing)
+  - Invite teammates during brief creation
+  - Auto-set context to new brief when complete
+
+  **Quality of Life**
+  - Clickable brief URL and team invite URL in terminal
+  - Shows task count as they're generated
+  - Graceful fallback if generation takes longer than expected
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Redesign `tm init` with clearer workflow selection and reduced noise
+
+  Choose how you want to plan: Solo with Taskmaster or Together with Hamster. The new init flow guides you through setup with context-appropriate options and cleaner output.
+
+  **New Workflow Selection**
+  - Clear framing: "You need a plan before you execute. How do you want to build it?"
+  - **Solo (Taskmaster)**: Parse PRD → structured tasks → AI agent executes with control
+  - **Together (Hamster)**: Team writes brief → Hamster refines → aligned execution with Taskmaster
+
+  **Cleaner Experience**
+  - Optional AI IDE rules setup (Y/n prompt instead of always showing)
+  - 15+ log messages moved to debug level - much less noise
+  - Skip Git prompts when using Hamster (not needed for cloud storage)
+  - Skip AI model configuration for Hamster (uses Hamster's AI)
+
+  **Hamster Integration**
+  - OAuth login flow when choosing Hamster workflow
+  - Context-aware guidance based on your workflow choice
+
+  **Quality of Life**
+  - Run `tm rules --setup` anytime if you declined during init
+  - Use `--yes` flag for fully non-interactive setup
+  - Use `--rules cursor,windsurf` to specify rules upfront
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Introduce `tm export` command - bring Task Master to your team
+
+  Share your task plans with teammates by exporting local tasks to collaborative briefs on Hamster. Select which tags to export, invite team members, and start collaborating instantly.
+
+  **New `tm export` Command**
+  - Export your local tasks to shareable team briefs
+  - Hamster will reverse engineer your PRD based on your tasks (reverse parse prd!)
+  - Select multiple tags to export in one go, import all tasks across tags to Hamster
+  - Hamster will generate brief titles and descriptions from your task content
+  - Automatically sets your CLI context to the new brief
+  - All AI calls handled by Hamster, zero API keys needed - just a Hamster account!
+
+  **Team Collaboration**
+  - Invite teammates during export with `-I, --invite` flag
+  - Add up to 10 team members by email
+  - See invitation status: sent, already a member, or error
+
+  **Quality of Life Improvements**
+  - New `tm login` / `tm logout` shortcuts
+  - Display ID shortcuts: `tm show ham31` now works (normalizes to HAM-31)
+  - Better task rendering with proper HTML/Markdown support
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add simpler positional syntax and Hamster-aware UI improvements
+  - **Simpler command syntax**: Use positional arguments without flags
+    - `tm update-task 1 Added implementation` (no quotes needed for multi-word prompts)
+    - `tm status 1 done` (new alias for set-status) or `tm set-status 1,1.1,2 in-progress`
+    - `tm list done` or `tm list in-progress` or `tm list all` (shortcut for --with-subtasks)
+  - **Hamster-aware help**: Context-specific command list when connected to Hamster
+    - Shows only relevant commands for Hamster workflow
+    - Beautiful boxed section headers with improved spacing
+    - Clear usage examples with new positional syntax
+    - Better visual alignment and cleaner formatting
+  - **Progress indicators**: Added loading spinner to `update-task` when connected to Hamster
+    - Shows "Updating task X on Hamster..." during AI processing
+    - Cleaner, more responsive UX for long-running operations
+  - **Improved context display**: Show 'Brief: [name]' instead of 'tag: [name]' when connected to Hamster
+  - **Cleaner Hamster updates**: Simplified update display (removed redundant Mode/Prompt info)
+  - **Smart messaging**: "NO TASKS AVAILABLE" warning only shows when literally no tasks exist
+    - Removed misleading messages when tasks are just completed/in-progress/blocked
+    - Better UX for filtered task lists
+  - **Updated help everywhere**: Regular help menu now shows new positional argument syntax
+    - All suggested actions updated across commands
+    - Consistent syntax in all UI components
+  - **Auto-detection**: Automatically detects Hamster connection for better UX
+  - **Backward compatible**: All old flag syntax still works (`--id`, `--status`, etc.)
+
+### Patch Changes
+
+- [#1452](https://github.com/eyaltoledano/claude-task-master/pull/1452) [`4046b3c`](https://github.com/eyaltoledano/claude-task-master/commit/4046b3ca4479adf0239679eb5ba18b7b4aec0749) Thanks [@eyaltoledano](https://github.com/eyaltoledano)! - Add Sentry integration for error tracking and AI telemetry monitoring
+  - **Sentry Integration**: Added comprehensive error tracking and AI operation monitoring using Sentry with Vercel AI SDK integration
+  - **AI Telemetry**: All AI operations (generateText, streamText, generateObject, streamObject) now automatically track spans, token usage, prompts, and responses
+  - **MCP Server Instrumentation**: Wrapped FastMCP server with `Sentry.wrapMcpServerWithSentry()` to automatically capture spans for all MCP tool interactions
+  - **Privacy Controls**: Added `anonymousTelemetry` config option (default: true) allowing local storage users to opt out of telemetry
+  - **Complete Coverage**: Telemetry enabled for all AI commands including parse-prd, expand, update-task, analyze-complexity, and research
+  - **Internal Telemetry**: Sentry DSN is hardcoded internally for Task Master's telemetry (not user-configurable)
+  - **Dual Initialization**: Automatic Sentry initialization in both CLI (scripts/dev.js) and MCP Server (mcp-server/src/index.js) with full MCP instrumentation
+
+## 0.36.0-rc.0
+
+### Minor Changes
+
+- [#1446](https://github.com/eyaltoledano/claude-task-master/pull/1446) [`2316e94`](https://github.com/eyaltoledano/claude-task-master/commit/2316e94b288915bb906e1a61a87f59e291594fef) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Bring back `task-master generate` as a command and mcp tool (after popular demand)
+  - Generated files are now `.md` instead of `.txt`
+    - They also follow the markdownlint format making them look like more standard md files
+  - added parameters to generate allowing you to generate with the `--tag` flag
+    - If I am on an active tag and want to generate files from another tag, I can with the tag parameter
+  - See `task-master generate --help` for more information.
+
+- [#1454](https://github.com/eyaltoledano/claude-task-master/pull/1454) [`38ff7eb`](https://github.com/eyaltoledano/claude-task-master/commit/38ff7ebbc029919ea4cd5257573efbf1ea2f0eeb) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add Hamster rules to task-master rules
+
+## 0.35.0
+
+### Minor Changes
+
+- [#1437](https://github.com/eyaltoledano/claude-task-master/pull/1437) [`783398e`](https://github.com/eyaltoledano/claude-task-master/commit/783398ecdf71432bd2b97f400756acbcfd60fbef) Thanks [@ben-vargas](https://github.com/ben-vargas)! - Upgrade gemini-cli provider to native structured output support
+  - Upgrade `ai-sdk-provider-gemini-cli` from v1.1.1 to v1.4.0 with native `responseJsonSchema` support
+  - Simplify provider implementation by removing JSON extraction workarounds (652 lines → 95 lines)
+  - Enable native structured output via Gemini API's schema enforcement
+
+- [#1440](https://github.com/eyaltoledano/claude-task-master/pull/1440) [`9f6f3af`](https://github.com/eyaltoledano/claude-task-master/commit/9f6f3affe322512a8708624850c144b4b890e782) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add support for opus 4.1 and opus 4.5 anthropic models
+
+### Patch Changes
+
+- [#1440](https://github.com/eyaltoledano/claude-task-master/pull/1440) [`9f6f3af`](https://github.com/eyaltoledano/claude-task-master/commit/9f6f3affe322512a8708624850c144b4b890e782) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Correct swe scores of haiku 4.5 and sonnet 4.5
+
+- [#1436](https://github.com/eyaltoledano/claude-task-master/pull/1436) [`c1df63d`](https://github.com/eyaltoledano/claude-task-master/commit/c1df63d7229f05b57abba4af11e74a8d2bc6dcd9) Thanks [@ben-vargas](https://github.com/ben-vargas)! - Upgrade ai-sdk-provider-claude-code to v2.2.0 for native structured outputs support.
+
+## 0.34.0
+
+### Minor Changes
+
+- [#1425](https://github.com/eyaltoledano/claude-task-master/pull/1425) [`99d9179`](https://github.com/eyaltoledano/claude-task-master/commit/99d9179522dc66797ec7e3f428d72b46a9557f09) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Deprecated generate command
+
+## 0.33.0
+
+### Minor Changes
+
+- [#1427](https://github.com/eyaltoledano/claude-task-master/pull/1427) [`122c23a`](https://github.com/eyaltoledano/claude-task-master/commit/122c23abb36634c1e68c476d681f41b4b4991671) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Added Gemini 3 pro preview to supported Taskmaster AI providers
+  - Added to Google providers
+  - Added to Gemini CLI providers
+    - Attention: Gemini 3 Pro is available for:
+      - Google AI Ultra Subscribers
+      - Users who have access via a paid Gemini API key
+        - If you want to use the gemini api key, make sure you have this defined in your .env or mcp.json env variables: `GEMINI_API_KEY=xxxx`
+
+## 0.32.2
+
+### Patch Changes
+
+- [#1421](https://github.com/eyaltoledano/claude-task-master/pull/1421) [`e75946b`](https://github.com/eyaltoledano/claude-task-master/commit/e75946b1a998269e6a751d2b5baf5c3b7e9b9f46) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Upgrade fastmcp dependency to solve `Server does not support completions (required for completion/complete)`
+  - This resolves errors where MCP clients (like Cursor) failed to connect to the Task Master MCP server:
+    - [#1413](https://github.com/eyaltoledano/claude-task-master/issues/1413)
+    - [#1411](https://github.com/eyaltoledano/claude-task-master/issues/1411)
+
+## 0.32.1
+
+### Patch Changes
+
+- [#1396](https://github.com/eyaltoledano/claude-task-master/pull/1396) [`9883e83`](https://github.com/eyaltoledano/claude-task-master/commit/9883e83b78306e55003e960ea072a11048d89ec9) Thanks [@bjcoombs](https://github.com/bjcoombs)! - Fix box title alignment by adding emoji variant selector to warning sign
+
+## 0.32.0
+
+### Minor Changes
+
+- [#1382](https://github.com/eyaltoledano/claude-task-master/pull/1382) [`ac4328a`](https://github.com/eyaltoledano/claude-task-master/commit/ac4328ae86380c50bb84fff0e98e2370f4ea666f) Thanks [@JJVvV](https://github.com/JJVvV)! - Added opt-in proxy support for all AI providers - respects http_proxy/https_proxy environment variables when enabled.
+
+  When using Task Master in corporate or restricted network environments that require HTTP/HTTPS proxies, API calls to AI providers (OpenAI, Anthropic, Google, AWS Bedrock, etc.) would previously fail with ECONNRESET errors. This update adds seamless proxy support that can be enabled via environment variable or configuration file.
+
+  **How to enable:**
+
+  Proxy support is opt-in. Enable it using either method:
+
+  **Method 1: Environment Variable**
+
+  ```bash
+  export TASKMASTER_ENABLE_PROXY=true
+  export http_proxy=http://your-proxy:port
+  export https_proxy=http://your-proxy:port
+  export no_proxy=localhost,127.0.0.1  # Optional: bypass proxy for specific hosts
+
+  # Then use Task Master normally
+  task-master add-task "Create a new feature"
+  ```
+
+  **Method 2: Configuration File**
+
+  Add to `.taskmaster/config.json`:
+
+  ```json
+  {
+    "global": {
+      "enableProxy": true
+    }
+  }
+  ```
+
+  Then set your proxy environment variables:
+
+  ```bash
+  export http_proxy=http://your-proxy:port
+  export https_proxy=http://your-proxy:port
+  ```
+
+  **Technical details:**
+  - Uses undici's `EnvHttpProxyAgent` for automatic proxy detection
+  - Centralized implementation in `BaseAIProvider` for consistency across all providers
+  - Supports all AI providers: OpenAI, Anthropic, Perplexity, Azure OpenAI, Google AI, Google Vertex AI, AWS Bedrock, and OpenAI-compatible providers
+  - Opt-in design ensures users without proxy requirements are not affected
+  - Priority: `TASKMASTER_ENABLE_PROXY` environment variable > `config.json` setting
+
+- [#1408](https://github.com/eyaltoledano/claude-task-master/pull/1408) [`10ec025`](https://github.com/eyaltoledano/claude-task-master/commit/10ec0255812dad00aaa72f1b31f41ca978e4451c) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Add --json back to `task-master list` and `task-master show` for when using the commands with ai agents (less context)
+
+- [#1398](https://github.com/eyaltoledano/claude-task-master/pull/1398) [`e59c16c`](https://github.com/eyaltoledano/claude-task-master/commit/e59c16c707d3ade479a422d8c617004eac1a857f) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Claude Code provider now respects your global, project, and local Claude Code configuration files.
+
+  When using the Claude Code AI provider, Task Master now automatically loads your Claude Code settings from:
+  - **Global config** (`~/.claude/` directory) - Your personal preferences across all projects
+  - **Project config** (`.claude/` directory) - Project-specific settings like CLAUDE.md instructions
+  - **Local config** - Workspace-specific overrides
+
+  This means your CLAUDE.md files, custom instructions, and Claude Code settings will now be properly applied when Task Master uses Claude Code as an AI provider. Previously, these settings were being ignored.
+
+  **What's improved:**
+  - ✅ CLAUDE.md files are now automatically loaded and applied (global and local)
+  - ✅ Your custom Claude Code settings are respected
+  - ✅ Project-specific instructions work as expected
+  - ✅ No manual configuration needed - works out of the box
+
+  **Issues:**
+  - Resolves #1391
+  - Resolves #1315
+
+### Patch Changes
+
+- [#1400](https://github.com/eyaltoledano/claude-task-master/pull/1400) [`c62cf84`](https://github.com/eyaltoledano/claude-task-master/commit/c62cf845dad1960ec183df217293d4edbeea71b9) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix subtasks not showing parent task when displaying in cli (eg. tm show 10)
+
+- [#1393](https://github.com/eyaltoledano/claude-task-master/pull/1393) [`da8ed6a`](https://github.com/eyaltoledano/claude-task-master/commit/da8ed6aa116b9ade3ef4502dd8b8c44727057b5f) Thanks [@bjcoombs](https://github.com/bjcoombs)! - Fix completion percentage and dependency resolution to treat cancelled tasks as complete. Cancelled tasks now correctly count toward project completion (e.g., 14 done + 1 cancelled = 100%, not 93%) and satisfy dependencies for dependent tasks, preventing permanent blocks.
+
+- [#1407](https://github.com/eyaltoledano/claude-task-master/pull/1407) [`0003b6f`](https://github.com/eyaltoledano/claude-task-master/commit/0003b6fca6b8c9320ee959fb0081eed4ba086b98) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix complexity analysis prompt to ensure consistent JSON output format
+
+- [#1351](https://github.com/eyaltoledano/claude-task-master/pull/1351) [`37aee78`](https://github.com/eyaltoledano/claude-task-master/commit/37aee7809ce753104692b2024eb8b2bb0d376c14) Thanks [@bjcoombs](https://github.com/bjcoombs)! - fix: prioritize .taskmaster in parent directories over other project markers
+
+  When running task-master commands from subdirectories containing other project markers (like .git, go.mod, package.json), findProjectRoot() now correctly finds and uses .taskmaster directories in parent folders instead of stopping at the first generic project marker found.
+
+  This enables multi-repo monorepo setups where a single .taskmaster at the root tracks work across multiple sub-repositories.
+
+- [#1406](https://github.com/eyaltoledano/claude-task-master/pull/1406) [`9079d04`](https://github.com/eyaltoledano/claude-task-master/commit/9079d0417907f468360e8db8dd461abb619609e7) Thanks [@Crunchyman-ralph](https://github.com/Crunchyman-ralph)! - Fix MCP server compatibility with Cursor IDE's latest update by upgrading to fastmcp v3.20.1 with Zod v4 support
+  - This resolves connection failures where the MCP server was unable to establish proper capability negotiation.
+  - Issue typically included wording like: `Server does not support completions`
+
 ## 0.32.0-rc.0
 
 ### Minor Changes

@@ -12,6 +12,26 @@ export {
 	type CheckAuthOptions
 } from './auth-helpers.js';
 
+// Auth guard for commands requiring authentication
+export {
+	ensureAuthenticated,
+	withAuth,
+	type AuthGuardOptions,
+	type AuthGuardResult
+} from './auth-guard.js';
+
+// Shared browser authentication with MFA support
+export { authenticateWithBrowserMFA } from './auth-ui.js';
+
+// Organization selection utility
+export { ensureOrgSelected, type OrgSelectionResult } from './org-selection.js';
+
+// Command guard for local-only commands
+export {
+	checkAndBlockIfAuthenticated,
+	checkAndBlockDependencyCommand // Legacy export
+} from './command-guard.js';
+
 // Error handling utilities
 export { displayError, isDebugMode } from './error-handler.js';
 
@@ -22,7 +42,10 @@ export {
 	displayUpgradeNotification,
 	compareVersions,
 	restartWithNewVersion
-} from './auto-update.js';
+} from './auto-update/index.js';
 
 // Display helpers (command-specific helpers)
 export { displayCommandHeader } from './display-helpers.js';
+
+// Content rendering (HTML/Markdown to terminal)
+export { renderContent } from './content-renderer.js';

@@ -3,16 +3,16 @@
  * Tool for displaying the complexity analysis report
  */
 
-import { z } from 'zod';
 import {
-	handleApiResult,
 	createErrorResponse,
+	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
-import { complexityReportDirect } from '../core/task-master-core.js';
-import { COMPLEXITY_REPORT_FILE } from '../../../src/constants/paths.js';
-import { findComplexityReportPath } from '../core/utils/path-utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
 import { getCurrentTag } from '../../../scripts/modules/utils.js';
+import { COMPLEXITY_REPORT_FILE } from '../../../src/constants/paths.js';
+import { complexityReportDirect } from '../core/task-master-core.js';
+import { findComplexityReportPath } from '../core/utils/path-utils.js';
 
 /**
  * Register the complexityReport tool with the MCP server
@@ -71,13 +71,12 @@ export function registerComplexityReportTool(server) {
 					);
 				}
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error retrieving complexity report',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error retrieving complexity report',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error in complexity-report tool: ${error.message}`);
 				return createErrorResponse(

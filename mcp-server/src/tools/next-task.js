@@ -3,18 +3,18 @@
  * Tool to find the next task to work on based on dependencies and status
  */
 
-import { z } from 'zod';
 import {
 	createErrorResponse,
 	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import { nextTaskDirect } from '../core/task-master-core.js';
 import {
-	resolveTasksPath,
-	resolveComplexityReportPath
+	resolveComplexityReportPath,
+	resolveTasksPath
 } from '../core/utils/path-utils.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the nextTask tool with the MCP server
@@ -82,13 +82,12 @@ export function registerNextTaskTool(server) {
 				);
 
 				log.info(`Next task result: ${result.success ? 'found' : 'none'}`);
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error finding next task',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error finding next task',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error finding next task: ${error.message}`);
 				return createErrorResponse(error.message);

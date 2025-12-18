@@ -3,14 +3,10 @@
  * Finalize and complete the workflow with working tree validation
  */
 
-import { z } from 'zod';
-import {
-	handleApiResult,
-	withNormalizedProjectRoot
-} from '../../shared/utils.js';
-import type { MCPContext } from '../../shared/types.js';
-import { WorkflowService } from '@tm/core';
 import type { FastMCP } from 'fastmcp';
+import { z } from 'zod';
+import type { ToolContext } from '../../shared/types.js';
+import { handleApiResult, withToolContext } from '../../shared/utils.js';
 
 const FinalizeSchema = z.object({
 	projectRoot: z
@@ -29,17 +25,16 @@ export function registerAutopilotFinalizeTool(server: FastMCP) {
 		description:
 			'Finalize and complete the workflow. Validates that all changes are committed and working tree is clean before marking workflow as complete.',
 		parameters: FinalizeSchema,
-		execute: withNormalizedProjectRoot(
-			async (args: FinalizeArgs, context: MCPContext) => {
+		execute: withToolContext(
+			'autopilot-finalize',
+			async (args: FinalizeArgs, { log, tmCore }: ToolContext) => {
 				const { projectRoot } = args;
 
 				try {
-					context.log.info(`Finalizing workflow in ${projectRoot}`);
-
-					const workflowService = new WorkflowService(projectRoot);
+					log.info(`Finalizing workflow in ${projectRoot}`);
 
 					// Check if workflow exists
-					if (!(await workflowService.hasWorkflow())) {
+					if (!(await tmCore.workflow.hasWorkflow())) {
 						return handleApiResult({
 							result: {
 								success: false,
@@ -48,14 +43,14 @@ export function registerAutopilotFinalizeTool(server: FastMCP) {
 										'No active workflow found. Start a workflow with autopilot_start'
 								}
 							},
-							log: context.log,
+							log,
 							projectRoot
 						});
 					}
 
 					// Resume workflow
-					await workflowService.resumeWorkflow();
-					const currentStatus = workflowService.getStatus();
+					await tmCore.workflow.resume();
+					const currentStatus = tmCore.workflow.getStatus();
 
 					// Verify we're in FINALIZE phase
 					if (currentStatus.phase !== 'FINALIZE') {
@@ -66,18 +61,19 @@ export function registerAutopilotFinalizeTool(server: FastMCP) {
 									message: `Cannot finalize: workflow is in ${currentStatus.phase} phase. Complete all subtasks first.`
 								}
 							},
-							log: context.log,
+							log,
 							projectRoot
 						});
 					}
 
 					// Finalize workflow (validates clean working tree)
-					const newStatus = await workflowService.finalizeWorkflow();
+					// Status updates (main task → done) are handled internally by tmCore.workflow
+					const newStatus = await tmCore.workflow.finalize();
 
-					context.log.info('Workflow finalized successfully');
+					log.info('Workflow finalized successfully');
 
 					// Get next action
-					const nextAction = workflowService.getNextAction();
+					const nextAction = tmCore.workflow.getNextAction();
 
 					return handleApiResult({
 						result: {
@@ -89,13 +85,13 @@ export function registerAutopilotFinalizeTool(server: FastMCP) {
 								nextSteps: nextAction.nextSteps
 							}
 						},
-						log: context.log,
+						log,
 						projectRoot
 					});
 				} catch (error: any) {
-					context.log.error(`Error in autopilot-finalize: ${error.message}`);
+					log.error(`Error in autopilot-finalize: ${error.message}`);
 					if (error.stack) {
-						context.log.debug(error.stack);
+						log.debug(error.stack);
 					}
 					return handleApiResult({
 						result: {
@@ -104,7 +100,7 @@ export function registerAutopilotFinalizeTool(server: FastMCP) {
 								message: `Failed to finalize workflow: ${error.message}`
 							}
 						},
-						log: context.log,
+						log,
 						projectRoot
 					});
 				}

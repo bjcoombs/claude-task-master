@@ -1,9 +1,9 @@
-import { z } from 'zod';
 import {
 	createErrorResponse,
 	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
 import { responseLanguageDirect } from '../core/direct-functions/response-language.js';
 
 export function registerResponseLanguageTool(server) {
@@ -36,7 +36,12 @@ export function registerResponseLanguageTool(server) {
 					log,
 					{ session }
 				);
-				return handleApiResult(result, log, 'Error setting response language');
+				return handleApiResult({
+					result,
+					log,
+					errorPrefix: 'Error setting response language',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error in response-language tool: ${error.message}`);
 				return createErrorResponse(error.message);

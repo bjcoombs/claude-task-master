@@ -2,17 +2,15 @@
  * Auth Domain tests
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthDomain } from './auth-domain.js';
 
 describe('AuthDomain', () => {
-	let authDomain: AuthDomain;
 	let originalEnv: NodeJS.ProcessEnv;
 
 	beforeEach(() => {
 		// Save original environment
 		originalEnv = { ...process.env };
-		authDomain = new AuthDomain();
 	});
 
 	afterEach(() => {

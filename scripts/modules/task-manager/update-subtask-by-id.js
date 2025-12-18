@@ -1,31 +1,30 @@
 import fs from 'fs';
 import path from 'path';
-import chalk from 'chalk';
 import boxen from 'boxen';
+import chalk from 'chalk';
 import Table from 'cli-table3';
 
-import {
-	getStatusWithColor,
-	startLoadingIndicator,
-	stopLoadingIndicator,
-	displayAiUsageSummary
-} from '../ui.js';
-import {
-	log as consoleLog,
-	readJSON,
-	writeJSON,
-	truncate,
-	isSilentMode,
-	findProjectRoot,
-	flattenTasksWithSubtasks
-} from '../utils.js';
+import { tryUpdateViaRemote } from '@tm/bridge';
 import { generateTextService } from '../ai-services-unified.js';
 import { getDebugFlag, hasCodebaseAnalysis } from '../config-manager.js';
 import { getPromptManager } from '../prompt-manager.js';
-import generateTaskFiles from './generate-task-files.js';
+import {
+	displayAiUsageSummary,
+	getStatusWithColor,
+	startLoadingIndicator,
+	stopLoadingIndicator
+} from '../ui.js';
+import {
+	log as consoleLog,
+	findProjectRoot,
+	flattenTasksWithSubtasks,
+	isSilentMode,
+	readJSON,
+	truncate,
+	writeJSON
+} from '../utils.js';
 import { ContextGatherer } from '../utils/contextGatherer.js';
 import { FuzzyTaskSearch } from '../utils/fuzzyTaskSearch.js';
-import { tryUpdateViaRemote } from '@tm/bridge';
 
 /**
  * Update a subtask by appending additional timestamped information using the unified AI service.
@@ -68,14 +67,9 @@ async function updateSubtaskById(
 	try {
 		report('info', `Updating subtask ${subtaskId} with prompt: "${prompt}"`);
 
-		if (
-			!subtaskId ||
-			typeof subtaskId !== 'string' ||
-			!subtaskId.includes('.')
-		) {
-			throw new Error(
-				`Invalid subtask ID format: ${subtaskId}. Subtask ID must be in format "parentId.subtaskId"`
-			);
+		// Basic validation - ID must be present
+		if (!subtaskId || typeof subtaskId !== 'string') {
+			throw new Error('Subtask ID cannot be empty.');
 		}
 
 		if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
@@ -84,17 +78,13 @@ async function updateSubtaskById(
 			);
 		}
 
-		if (!fs.existsSync(tasksPath)) {
-			throw new Error(`Tasks file not found at path: ${tasksPath}`);
-		}
-
 		const projectRoot = providedProjectRoot || findProjectRoot();
 		if (!projectRoot) {
 			throw new Error('Could not determine project root directory');
 		}
 
 		// --- BRIDGE: Try remote update first (API storage) ---
-		// In API storage, subtask IDs like "1.2" or "TAS-49.1" are just regular task IDs
+		// In API storage, subtask IDs like "HAM-2611" are just regular task IDs
 		// So update-subtask and update-task work identically
 		const remoteResult = await tryUpdateViaRemote({
 			taskId: subtaskId,
@@ -118,6 +108,17 @@ async function updateSubtaskById(
 		}
 		// Otherwise fall through to file-based logic below
 		// --- End BRIDGE ---
+
+		// For file storage, validate the subtask ID format (must contain a dot)
+		if (!subtaskId.includes('.')) {
+			throw new Error(
+				`Invalid subtask ID format: ${subtaskId}. In solo mode, subtask ID must be in format "parentId.subtaskId" (e.g., "5.2").`
+			);
+		}
+
+		if (!fs.existsSync(tasksPath)) {
+			throw new Error(`Tasks file not found at path: ${tasksPath}`);
+		}
 
 		const data = readJSON(tasksPath, projectRoot, tag);
 		if (!data || !data.tasks) {
@@ -319,7 +320,7 @@ async function updateSubtaskById(
 			// Check if the string is not empty
 			const timestamp = new Date().toISOString();
 			const formattedBlock = `<info added on ${timestamp}>\n${generatedContentString.trim()}\n</info added on ${timestamp}>`;
-			newlyAddedSnippet = formattedBlock; // <--- ADD THIS LINE: Store for display
+			newlyAddedSnippet = formattedBlock;
 
 			subtask.details =
 				(subtask.details ? subtask.details + '\n' : '') + formattedBlock;

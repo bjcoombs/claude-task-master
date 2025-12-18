@@ -3,15 +3,15 @@
  * Tool to scope up task complexity
  */
 
-import { z } from 'zod';
 import {
 	createErrorResponse,
 	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import { scopeUpDirect } from '../core/task-master-core.js';
 import { findTasksPath } from '../core/utils/path-utils.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the scopeUp tool with the MCP server
@@ -88,13 +88,12 @@ export function registerScopeUpTool(server) {
 					{ session }
 				);
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error scoping up task',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error scoping up task',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error in scope-up tool: ${error.message}`);
 				return createErrorResponse(error.message);

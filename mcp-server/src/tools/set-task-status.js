@@ -3,22 +3,22 @@
  * Tool to set the status of a task
  */
 
-import { z } from 'zod';
 import {
-	handleApiResult,
 	createErrorResponse,
+	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
+import { TASK_STATUS_OPTIONS } from '../../../src/constants/task-status.js';
 import {
-	setTaskStatusDirect,
-	nextTaskDirect
+	nextTaskDirect,
+	setTaskStatusDirect
 } from '../core/task-master-core.js';
 import {
-	findTasksPath,
-	findComplexityReportPath
+	findComplexityReportPath,
+	findTasksPath
 } from '../core/utils/path-utils.js';
-import { TASK_STATUS_OPTIONS } from '../../../src/constants/task-status.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the setTaskStatus tool with the MCP server
@@ -113,13 +113,12 @@ export function registerSetTaskStatusTool(server) {
 					);
 				}
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error setting task status',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error setting task status',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error in setTaskStatus tool: ${error.message}`);
 				return createErrorResponse(

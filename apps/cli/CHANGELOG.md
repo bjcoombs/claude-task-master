@@ -18,6 +18,43 @@
 
 ### Patch Changes
 
+- Updated dependencies []:
+  - @tm/core@null
+
+## null
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tm/core@null
+
+## null
+
+### Patch Changes
+
+- [#1396](https://github.com/eyaltoledano/claude-task-master/pull/1396) [`9883e83`](https://github.com/eyaltoledano/claude-task-master/commit/9883e83b78306e55003e960ea072a11048d89ec9) Thanks [@bjcoombs](https://github.com/bjcoombs)! - Fix box title alignment by adding emoji variant selector to warning sign
+
+- Updated dependencies []:
+  - @tm/core@null
+
+## null
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tm/core@null
+
+## null
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @tm/core@null
+
+## null
+
+### Patch Changes
+
 - [#1305](https://github.com/eyaltoledano/claude-task-master/pull/1305) [`a98d96e`](https://github.com/eyaltoledano/claude-task-master/commit/a98d96ef0414833b948672f86da4acc11f700ebb) Thanks [@bjcoombs](https://github.com/bjcoombs)! - Fix warning message box width to match dashboard box width for consistent UI alignment
 
 - Updated dependencies []:

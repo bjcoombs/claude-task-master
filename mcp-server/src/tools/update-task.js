@@ -3,15 +3,15 @@
  * Tool to update a single task by ID with new information
  */
 
-import { z } from 'zod';
 import {
-	handleApiResult,
 	createErrorResponse,
+	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import { updateTaskByIdDirect } from '../core/task-master-core.js';
 import { findTasksPath } from '../core/utils/path-utils.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the update-task tool with the MCP server
@@ -91,13 +91,12 @@ export function registerUpdateTaskTool(server) {
 				log.info(
 					`${toolName}: Direct function result: success=${result.success}`
 				);
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error updating task',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error updating task',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(
 					`Critical error in ${toolName} tool execute: ${error.message}`

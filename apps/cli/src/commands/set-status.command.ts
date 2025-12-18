@@ -3,7 +3,12 @@
  * Extends Commander.Command for better integration with the framework
  */
 
-import { type TaskStatus, type TmCore, createTmCore } from '@tm/core';
+import {
+	type TaskStatus,
+	type TmCore,
+	createTmCore,
+	TaskIdSchema
+} from '@tm/core';
 import type { StorageType } from '@tm/core';
 import boxen from 'boxen';
 import chalk from 'chalk';
@@ -59,15 +64,18 @@ export class SetStatusCommand extends Command {
 	constructor(name?: string) {
 		super(name || 'set-status');
 
-		// Configure the command
+		// Configure the command with positional arguments
 		this.description('Update the status of one or more tasks')
-			.requiredOption(
-				'-i, --id <id>',
-				'Task ID(s) to update (comma-separated for multiple, supports subtasks like 5.2)'
+			.alias('status')
+			.argument(
+				'[id]',
+				'Task ID(s) - comma-separated for multiple (e.g., 1 or 1,1.1,2)'
 			)
-			.requiredOption(
+			.argument('[status]', `Status - ${VALID_TASK_STATUSES.join(', ')}`)
+			.option('-i, --id <id>', 'Task ID(s) (fallback if not using positional)')
+			.option(
 				'-s, --status <status>',
-				`New status (${VALID_TASK_STATUSES.join(', ')})`
+				'Status (fallback if not using positional)'
 			)
 			.option('-f, --format <format>', 'Output format (text, json)', 'text')
 			.option('--silent', 'Suppress output (useful for programmatic usage)')
@@ -75,9 +83,21 @@ export class SetStatusCommand extends Command {
 				'-p, --project <path>',
 				'Project root directory (auto-detected if not provided)'
 			)
-			.action(async (options: SetStatusCommandOptions) => {
-				await this.executeCommand(options);
-			});
+			.action(
+				async (
+					idArg?: string,
+					statusArg?: string,
+					options?: SetStatusCommandOptions
+				) => {
+					// Prioritize positional arguments over options
+					const mergedOptions: SetStatusCommandOptions = {
+						...options,
+						id: idArg || options?.id,
+						status: (statusArg as TaskStatus) || options?.status
+					};
+					await this.executeCommand(mergedOptions);
+				}
+			);
 	}
 
 	/**
@@ -90,13 +110,27 @@ export class SetStatusCommand extends Command {
 		try {
 			// Validate required options
 			if (!options.id) {
-				console.error(chalk.red('Error: Task ID is required. Use -i or --id'));
+				console.error(chalk.red('Error: Task ID is required'));
+				console.log(
+					chalk.yellow(
+						'Usage examples:\n' +
+							'  tm set-status 1 done\n' +
+							'  tm set-status 1.2 in-progress\n' +
+							'  tm set-status --id=1 --status=done'
+					)
+				);
 				process.exit(1);
 			}
 
 			if (!options.status) {
-				console.error(
-					chalk.red('Error: Status is required. Use -s or --status')
+				console.error(chalk.red('Error: Status is required'));
+				console.log(
+					chalk.yellow(
+						'Usage examples:\n' +
+							'  tm set-status 1 done\n' +
+							'  tm set-status 1,1.1 in-progress\n' +
+							'  tm set-status --id=1 --status=done'
+					)
 				);
 				process.exit(1);
 			}
@@ -116,8 +150,21 @@ export class SetStatusCommand extends Command {
 				projectPath: getProjectRoot(options.project)
 			});
 
-			// Parse task IDs (handle comma-separated values)
-			const taskIds = options.id.split(',').map((id) => id.trim());
+			// Parse and validate task IDs (handle comma-separated values)
+			const rawIds = options.id.split(',').map((id) => id.trim());
+			const taskIds: string[] = [];
+
+			for (const rawId of rawIds) {
+				const parseResult = TaskIdSchema.safeParse(rawId);
+				if (!parseResult.success) {
+					console.error(
+						chalk.red(`Invalid task ID: ${rawId}`),
+						chalk.gray(`- ${parseResult.error.issues[0]?.message}`)
+					);
+					process.exit(1);
+				}
+				taskIds.push(parseResult.data);
+			}
 
 			// Update each task
 			const updatedTasks: Array<{

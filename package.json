@@ -1,6 +1,6 @@
 {
 	"name": "task-master-ai",
-	"version": "0.32.0-rc.0",
+	"version": "0.39.0-rc.0",
 	"description": "A task management system for ambitious AI-driven development that doesn't overwhelm and confuse Cursor.",
 	"main": "index.js",
 	"type": "module",
@@ -8,6 +8,10 @@
 		"task-master": "dist/task-master.js",
 		"task-master-mcp": "dist/mcp-server.js",
 		"task-master-ai": "dist/mcp-server.js"
+	},
+	"publishConfig": {
+		"provenance": true,
+		"access": "public"
 	},
 	"workspaces": ["apps/*", "packages/*", "."],
 	"scripts": {
@@ -28,7 +32,9 @@
 		"test:e2e-report": "./tests/e2e/run_e2e.sh --analyze-log",
 		"postpack": "chmod +x dist/task-master.js dist/mcp-server.js",
 		"changeset": "changeset",
-		"release": "changeset publish",
+		"changeset:validate": "node .github/scripts/validate-changesets.mjs",
+		"version": "changeset version",
+		"release": "node ./.github/scripts/release.mjs",
 		"publish-packages": "turbo run build lint test && changeset version && changeset publish",
 		"inspector": "npx @modelcontextprotocol/inspector node dist/mcp-server.js",
 		"mcp-server": "node dist/mcp-server.js",
@@ -54,9 +60,9 @@
 	"dependencies": {
 		"@ai-sdk/amazon-bedrock": "^3.0.23",
 		"@ai-sdk/anthropic": "^2.0.18",
-		"@ai-sdk/azure": "^2.0.34",
+		"@ai-sdk/azure": "^2.0.89",
 		"@ai-sdk/google": "^2.0.16",
-		"@ai-sdk/google-vertex": "^3.0.29",
+		"@ai-sdk/google-vertex": "^3.0.86",
 		"@ai-sdk/groq": "^2.0.21",
 		"@ai-sdk/mistral": "^2.0.16",
 		"@ai-sdk/openai": "^2.0.34",
@@ -68,12 +74,14 @@
 		"@aws-sdk/credential-providers": "^3.895.0",
 		"@inquirer/search": "^3.0.15",
 		"@openrouter/ai-sdk-provider": "^1.2.0",
+		"@sentry/node": "^10.27.0",
 		"@streamparser/json": "^0.0.22",
 		"@supabase/supabase-js": "^2.57.4",
+		"@types/turndown": "^5.0.6",
 		"ai": "^5.0.51",
-		"ai-sdk-provider-claude-code": "^2.1.0",
-		"ai-sdk-provider-codex-cli": "^0.3.0",
-		"ai-sdk-provider-gemini-cli": "^1.1.1",
+		"ai-sdk-provider-claude-code": "^2.2.4",
+		"ai-sdk-provider-codex-cli": "^0.7.0",
+		"ai-sdk-provider-gemini-cli": "^1.4.0",
 		"ajv": "^8.17.1",
 		"ajv-formats": "^3.0.1",
 		"boxen": "^8.0.1",
@@ -86,7 +94,7 @@
 		"date-fns": "^4.1.0",
 		"dotenv": "^16.6.1",
 		"express": "^4.21.2",
-		"fastmcp": "^3.23.0",
+		"fastmcp": "^3.23.1",
 		"figlet": "^1.8.0",
 		"fs-extra": "^11.3.0",
 		"fuse.js": "^7.1.0",
@@ -105,16 +113,18 @@
 		"ora": "^8.2.0",
 		"simple-git": "^3.28.0",
 		"steno": "^4.0.2",
+		"terminal-link": "^5.0.0",
+		"turndown": "^7.2.2",
 		"undici": "^7.16.0",
 		"uuid": "^11.1.0",
 		"zod": "^4.1.12"
 	},
 	"optionalDependencies": {
-		"@anthropic-ai/claude-code": "^1.0.88",
+		"@anthropic-ai/claude-code": "^2.0.59",
 		"@biomejs/cli-linux-x64": "^1.9.4"
 	},
 	"engines": {
-		"node": ">=18.0.0"
+		"node": ">=20.0.0"
 	},
 	"packageManager": "npm@10.9.2",
 	"repository": {
@@ -146,6 +156,7 @@
 		"@types/fs-extra": "^11.0.4",
 		"@types/jest": "^29.5.14",
 		"@types/marked-terminal": "^6.1.1",
+		"@vitest/coverage-v8": "^4.0.10",
 		"concurrently": "^9.2.1",
 		"cross-env": "^10.0.0",
 		"execa": "^8.0.1",

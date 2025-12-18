@@ -1,11 +1,11 @@
 // In tests/unit/parse-prd.test.js
 // Testing parse-prd.js file extension compatibility with real files
 
-import { jest } from '@jest/globals';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import os from 'os';
+import { jest } from '@jest/globals';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -120,14 +120,6 @@ jest.unstable_mockModule('../../src/ui/parse-prd.js', () => ({
 jest.unstable_mockModule('../../scripts/modules/ui.js', () => ({
 	displayAiUsageSummary: jest.fn()
 }));
-
-// Mock task generation to prevent file operations
-jest.unstable_mockModule(
-	'../../scripts/modules/task-manager/generate-task-files.js',
-	() => ({
-		default: jest.fn()
-	})
-);
 
 // Mock stream parser
 jest.unstable_mockModule('../../src/utils/stream-parser.js', () => {

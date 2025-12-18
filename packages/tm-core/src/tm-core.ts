@@ -180,6 +180,10 @@ export class TmCore {
 			// Initialize domains that need async setup
 			await this._tasks.initialize();
 
+			// Wire up cross-domain dependencies
+			// WorkflowDomain needs TasksDomain for status updates
+			this._workflow.setTasksDomain(this._tasks);
+
 			// Log successful initialization
 			this._logger.info('TmCore initialized successfully');
 		} catch (error) {
@@ -202,6 +206,17 @@ export class TmCore {
 	 */
 	get projectPath(): string {
 		return this._projectPath;
+	}
+
+	/**
+	 * Close and cleanup resources
+	 * Releases file locks and other storage resources
+	 * Should be called when done using TmCore, especially in tests
+	 */
+	async close(): Promise<void> {
+		if (this._tasks) {
+			await this._tasks.close();
+		}
 	}
 }
 

@@ -4,23 +4,21 @@
  */
 
 import path from 'path';
-import chalk from 'chalk';
 import boxen from 'boxen';
+import chalk from 'chalk';
 
 import {
+	findCycles,
+	formatTaskId,
+	isSilentMode,
 	log,
 	readJSON,
-	writeJSON,
 	taskExists,
-	formatTaskId,
-	findCycles,
 	traverseDependencies,
-	isSilentMode
+	writeJSON
 } from './utils.js';
 
 import { displayBanner } from './ui.js';
-
-import generateTaskFiles from './task-manager/generate-task-files.js';
 
 /**
  * Structured error class for dependency operations

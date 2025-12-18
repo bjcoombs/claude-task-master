@@ -6,6 +6,7 @@
 import path from 'node:path';
 import type { StorageType } from '../../common/types/index.js';
 import type { Brief } from '../briefs/types.js';
+import { type AuthBlockResult, checkAuthBlock } from './command.guard.js';
 import { AuthManager } from './managers/auth-manager.js';
 import type {
 	Organization,
@@ -13,6 +14,7 @@ import type {
 } from './services/organization.service.js';
 import type {
 	AuthCredentials,
+	MFAVerificationResult,
 	OAuthFlowOptions,
 	UserContext
 } from './types.js';
@@ -93,6 +95,36 @@ export class AuthDomain {
 	 */
 	async authenticateWithCode(token: string): Promise<AuthCredentials> {
 		return this.authManager.authenticateWithCode(token);
+	}
+
+	/**
+	 * Verify MFA code and complete authentication
+	 * Call this after authenticateWithCode() throws MFA_REQUIRED error
+	 *
+	 * @param factorId - MFA factor ID from the MFA_REQUIRED error
+	 * @param code - The TOTP code from the user's authenticator app
+	 */
+	async verifyMFA(factorId: string, code: string): Promise<AuthCredentials> {
+		return this.authManager.verifyMFA(factorId, code);
+	}
+
+	/**
+	 * Verify MFA with retry support
+	 * Allows multiple attempts with a callback for prompting the user
+	 *
+	 * @param factorId - MFA factor ID from the MFA_REQUIRED error
+	 * @param codeProvider - Function that prompts for and returns the MFA code
+	 * @param options - Optional configuration for retry behavior
+	 */
+	async verifyMFAWithRetry(
+		factorId: string,
+		codeProvider: () => Promise<string>,
+		options?: {
+			maxAttempts?: number;
+			onInvalidCode?: (attempt: number, remaining: number) => void;
+		}
+	): Promise<MFAVerificationResult> {
+		return this.authManager.verifyMFAWithRetry(factorId, codeProvider, options);
 	}
 
 	/**
@@ -225,11 +257,46 @@ export class AuthDomain {
 		return `${baseUrl}/home/${context.orgSlug}/briefs/create`;
 	}
 
+	// ========== Command Guards ==========
+
+	/**
+	 * Check if a local-only command should be blocked when using API storage
+	 *
+	 * Local-only commands (like dependency management) are blocked when authenticated
+	 * with Hamster and using API storage, since Hamster manages these features remotely.
+	 *
+	 * @param commandName - Name of the command to check
+	 * @param storageType - Current storage type being used
+	 * @returns Guard result with blocking decision and context
+	 *
+	 * @example
+	 * ```ts
+	 * const result = await tmCore.auth.guardCommand('add-dependency', tmCore.tasks.getStorageType());
+	 * if (result.isBlocked) {
+	 *   console.log(`Command blocked: ${result.briefName}`);
+	 * }
+	 * ```
+	 */
+	async guardCommand(
+		commandName: string,
+		storageType: StorageType
+	): Promise<AuthBlockResult> {
+		const hasValidSession = await this.hasValidSession();
+		const context = this.getContext();
+
+		return checkAuthBlock({
+			hasValidSession,
+			briefName: context?.briefName,
+			storageType,
+			commandName
+		});
+	}
+
 	/**
 	 * Get web app base URL from environment configuration
-	 * @private
+	 * Handles protocol detection and localhost vs production domains
 	 */
-	private getWebAppUrl(): string | undefined {
+	getApiBaseUrl(): string | undefined {
 		const baseDomain =
 			process.env.TM_BASE_DOMAIN || process.env.TM_PUBLIC_BASE_DOMAIN;
 
@@ -248,5 +315,12 @@ export class AuthDomain {
 		}
 
 		return `https://${baseDomain}`;
+	}
+
+	/**
+	 * @deprecated Use getApiBaseUrl() instead
+	 */
+	private getWebAppUrl(): string | undefined {
+		return this.getApiBaseUrl();
 	}
 }

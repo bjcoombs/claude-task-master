@@ -3,20 +3,20 @@
  * Tool to parse PRD document and generate tasks
  */
 
-import { z } from 'zod';
 import {
-	handleApiResult,
-	withNormalizedProjectRoot,
+	checkProgressCapability,
 	createErrorResponse,
-	checkProgressCapability
-} from './utils.js';
-import { parsePRDDirect } from '../core/task-master-core.js';
+	handleApiResult,
+	withNormalizedProjectRoot
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import {
 	PRD_FILE,
 	TASKMASTER_DOCS_DIR,
 	TASKMASTER_TASKS_FILE
 } from '../../../src/constants/paths.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
+import { parsePRDDirect } from '../core/task-master-core.js';
 
 /**
  * Register the parse_prd tool
@@ -84,13 +84,12 @@ export function registerParsePRDTool(server) {
 						log,
 						{ session, reportProgress: progressCapability }
 					);
-					return handleApiResult(
+					return handleApiResult({
 						result,
-						log,
-						'Error parsing PRD',
-						undefined,
-						args.projectRoot
-					);
+						log: log,
+						errorPrefix: 'Error parsing PRD',
+						projectRoot: args.projectRoot
+					});
 				} catch (error) {
 					log.error(`Error in parse_prd: ${error.message}`);
 					return createErrorResponse(`Failed to parse PRD: ${error.message}`);

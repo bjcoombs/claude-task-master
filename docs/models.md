@@ -1,4 +1,4 @@
-# Available Models as of November 1, 2025
+# Available Models as of December 16, 2025
 
 ## Main Models
 
@@ -8,14 +8,20 @@
 | anthropic   | claude-opus-4-20250514                         | 0.725     | 15         | 75          |
 | anthropic   | claude-3-7-sonnet-20250219                     | 0.623     | 3          | 15          |
 | anthropic   | claude-3-5-sonnet-20241022                     | 0.49      | 3          | 15          |
-| anthropic   | claude-sonnet-4-5-20250929                     | 0.73      | 3          | 15          |
-| anthropic   | claude-haiku-4-5-20251001                      | 0.45      | 1          | 5           |
+| anthropic   | claude-sonnet-4-5                              | 0.772     | 3          | 15          |
+| anthropic   | claude-haiku-4-5                               | 0.733     | 1          | 5           |
+| anthropic   | claude-opus-4-1                                | 0.745     | 15         | 75          |
+| anthropic   | claude-opus-4-5                                | 0.809     | 5          | 25          |
 | claude-code | opus                                           | 0.725     | 0          | 0           |
 | claude-code | sonnet                                         | 0.727     | 0          | 0           |
 | claude-code | haiku                                          | 0.45      | 0          | 0           |
 | codex-cli   | gpt-5                                          | 0.749     | 0          | 0           |
 | codex-cli   | gpt-5-codex                                    | 0.749     | 0          | 0           |
+| codex-cli   | gpt-5.1                                        | 0.76      | 0          | 0           |
+| codex-cli   | gpt-5.1-codex-max                              | 0.78      | 0          | 0           |
+| codex-cli   | gpt-5.2                                        | 0.8       | 0          | 0           |
 | mcp         | mcp-sampling                                   | —         | 0          | 0           |
+| gemini-cli  | gemini-3-pro-preview                           | 0.762     | 0          | 0           |
 | gemini-cli  | gemini-2.5-pro                                 | 0.72      | 0          | 0           |
 | gemini-cli  | gemini-2.5-flash                               | 0.71      | 0          | 0           |
 | grok-cli    | grok-4-latest                                  | 0.7       | 0          | 0           |
@@ -34,6 +40,11 @@
 | openai      | gpt-4-1-nano                                   | —         | 0.1        | 0.4         |
 | openai      | gpt-4o-mini                                    | 0.3       | 0.15       | 0.6         |
 | openai      | gpt-5                                          | 0.749     | 5          | 20          |
+| openai      | gpt-5.1                                        | 0.76      | 1.25       | 10          |
+| openai      | gpt-5.1-codex-max                              | 0.78      | 1.25       | 10          |
+| openai      | gpt-5.2                                        | 0.8       | 1.75       | 14          |
+| openai      | gpt-5.2-pro                                    | 0.82      | 21         | 168         |
+| google      | gemini-3-pro-preview                           | 0.762     | 2          | 12          |
 | google      | gemini-2.5-pro-preview-05-06                   | 0.638     | —          | —           |
 | google      | gemini-2.5-pro-preview-03-25                   | 0.638     | —          | —           |
 | google      | gemini-2.5-flash-preview-04-17                 | 0.604     | —          | —           |
@@ -96,6 +107,13 @@
 | azure       | gpt-4o                                         | 0.332     | 2.5        | 10          |
 | azure       | gpt-4o-mini                                    | 0.3       | 0.15       | 0.6         |
 | azure       | gpt-4-1                                        | —         | 2          | 10          |
+| azure       | gpt-5                                          | 0.749     | 5          | 20          |
+| azure       | o1                                             | 0.489     | 15         | 60          |
+| azure       | o3                                             | 0.5       | 2          | 8           |
+| azure       | o3-mini                                        | 0.493     | 1.1        | 4.4         |
+| azure       | o4-mini                                        | 0.45      | 1.1        | 4.4         |
+| azure       | gpt-5.1                                        | 0.76      | 1.25       | 10          |
+| azure       | gpt-5.2                                        | 0.8       | 1.75       | 14          |
 | bedrock     | us.anthropic.claude-3-haiku-20240307-v1:0      | 0.4       | 0.25       | 1.25        |
 | bedrock     | us.anthropic.claude-3-opus-20240229-v1:0       | 0.725     | 15         | 75          |
 | bedrock     | us.anthropic.claude-3-5-sonnet-20240620-v1:0   | 0.49      | 3          | 15          |
@@ -114,7 +132,11 @@
 | claude-code | haiku                                        | 0.45      | 0          | 0           |
 | codex-cli   | gpt-5                                        | 0.749     | 0          | 0           |
 | codex-cli   | gpt-5-codex                                  | 0.749     | 0          | 0           |
+| codex-cli   | gpt-5.1                                      | 0.76      | 0          | 0           |
+| codex-cli   | gpt-5.1-codex-max                            | 0.78      | 0          | 0           |
+| codex-cli   | gpt-5.2                                      | 0.8       | 0          | 0           |
 | mcp         | mcp-sampling                                 | —         | 0          | 0           |
+| gemini-cli  | gemini-3-pro-preview                         | 0.762     | 0          | 0           |
 | gemini-cli  | gemini-2.5-pro                               | 0.72      | 0          | 0           |
 | gemini-cli  | gemini-2.5-flash                             | 0.71      | 0          | 0           |
 | grok-cli    | grok-4-latest                                | 0.7       | 0          | 0           |
@@ -123,6 +145,7 @@
 | grok-cli    | grok-3-mini-fast                             | 0.55      | 0          | 0           |
 | openai      | gpt-4o-search-preview                        | 0.33      | 2.5        | 10          |
 | openai      | gpt-4o-mini-search-preview                   | 0.3       | 0.15       | 0.6         |
+| google      | gemini-3-pro-preview                         | 0.762     | 2          | 12          |
 | xai         | grok-3                                       | —         | 3          | 15          |
 | xai         | grok-3-fast                                  | —         | 5          | 25          |
 | xai         | grok-4                                       | —         | 3          | 15          |
@@ -158,14 +181,20 @@
 | anthropic   | claude-opus-4-20250514                         | 0.725     | 15         | 75          |
 | anthropic   | claude-3-7-sonnet-20250219                     | 0.623     | 3          | 15          |
 | anthropic   | claude-3-5-sonnet-20241022                     | 0.49      | 3          | 15          |
-| anthropic   | claude-sonnet-4-5-20250929                     | 0.73      | 3          | 15          |
-| anthropic   | claude-haiku-4-5-20251001                      | 0.45      | 1          | 5           |
+| anthropic   | claude-sonnet-4-5                              | 0.772     | 3          | 15          |
+| anthropic   | claude-haiku-4-5                               | 0.733     | 1          | 5           |
+| anthropic   | claude-opus-4-1                                | 0.745     | 15         | 75          |
+| anthropic   | claude-opus-4-5                                | 0.809     | 5          | 25          |
 | claude-code | opus                                           | 0.725     | 0          | 0           |
 | claude-code | sonnet                                         | 0.727     | 0          | 0           |
 | claude-code | haiku                                          | 0.45      | 0          | 0           |
 | codex-cli   | gpt-5                                          | 0.749     | 0          | 0           |
 | codex-cli   | gpt-5-codex                                    | 0.749     | 0          | 0           |
+| codex-cli   | gpt-5.1                                        | 0.76      | 0          | 0           |
+| codex-cli   | gpt-5.1-codex-max                              | 0.78      | 0          | 0           |
+| codex-cli   | gpt-5.2                                        | 0.8       | 0          | 0           |
 | mcp         | mcp-sampling                                   | —         | 0          | 0           |
+| gemini-cli  | gemini-3-pro-preview                           | 0.762     | 0          | 0           |
 | gemini-cli  | gemini-2.5-pro                                 | 0.72      | 0          | 0           |
 | gemini-cli  | gemini-2.5-flash                               | 0.71      | 0          | 0           |
 | grok-cli    | grok-4-latest                                  | 0.7       | 0          | 0           |
@@ -176,6 +205,11 @@
 | openai      | o3                                             | 0.5       | 2          | 8           |
 | openai      | o4-mini                                        | 0.45      | 1.1        | 4.4         |
 | openai      | gpt-5                                          | 0.749     | 5          | 20          |
+| openai      | gpt-5.1                                        | 0.76      | 1.25       | 10          |
+| openai      | gpt-5.1-codex-max                              | 0.78      | 1.25       | 10          |
+| openai      | gpt-5.2                                        | 0.8       | 1.75       | 14          |
+| openai      | gpt-5.2-pro                                    | 0.82      | 21         | 168         |
+| google      | gemini-3-pro-preview                           | 0.762     | 2          | 12          |
 | google      | gemini-2.5-pro-preview-05-06                   | 0.638     | —          | —           |
 | google      | gemini-2.5-pro-preview-03-25                   | 0.638     | —          | —           |
 | google      | gemini-2.5-flash-preview-04-17                 | 0.604     | —          | —           |
@@ -233,6 +267,11 @@
 | azure       | gpt-4o                                         | 0.332     | 2.5        | 10          |
 | azure       | gpt-4o-mini                                    | 0.3       | 0.15       | 0.6         |
 | azure       | gpt-4-1                                        | —         | 2          | 10          |
+| azure       | gpt-5                                          | 0.749     | 5          | 20          |
+| azure       | o3                                             | 0.5       | 2          | 8           |
+| azure       | o4-mini                                        | 0.45      | 1.1        | 4.4         |
+| azure       | gpt-5.1                                        | 0.76      | 1.25       | 10          |
+| azure       | gpt-5.2                                        | 0.8       | 1.75       | 14          |
 | bedrock     | us.anthropic.claude-3-haiku-20240307-v1:0      | 0.4       | 0.25       | 1.25        |
 | bedrock     | us.anthropic.claude-3-opus-20240229-v1:0       | 0.725     | 15         | 75          |
 | bedrock     | us.anthropic.claude-3-5-sonnet-20240620-v1:0   | 0.49      | 3          | 15          |

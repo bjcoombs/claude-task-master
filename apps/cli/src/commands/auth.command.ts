@@ -11,8 +11,8 @@ import {
 import chalk from 'chalk';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import open from 'open';
-import ora, { type Ora } from 'ora';
+import ora from 'ora';
+import { authenticateWithBrowserMFA, handleMFAFlow } from '../utils/auth-ui.js';
 import { displayError } from '../utils/error-handler.js';
 import * as ui from '../utils/ui.js';
 import { ContextCommand } from './context.command.js';
@@ -67,6 +67,7 @@ export class AuthCommand extends Command {
 				'Authentication token (optional, for SSH/remote environments)'
 			)
 			.option('-y, --yes', 'Skip interactive prompts')
+			.option('--no-header', 'Suppress the Task Master header banner')
 			.addHelpText(
 				'after',
 				`
@@ -74,11 +75,21 @@ Examples:
   $ tm auth login         # Browser-based OAuth flow (interactive)
   $ tm auth login <token> # Token-based authentication
   $ tm auth login <token> -y # Non-interactive token auth (for scripts)
+                             # Note: MFA prompts cannot be skipped if enabled
 `
 			)
-			.action(async (token?: string, options?: { yes?: boolean }) => {
-				await this.executeLogin(token, options?.yes);
-			});
+			.action(
+				async (
+					token?: string,
+					options?: { yes?: boolean; header?: boolean }
+				) => {
+					await this.executeLogin(
+						token,
+						options?.yes,
+						options?.header !== false
+					);
+				}
+			);
 	}
 
 	/**
@@ -87,7 +98,8 @@ Examples:
 	private addLogoutCommand(): void {
 		this.command('logout')
 			.description('Logout and clear credentials')
-			.action(async () => {
+			.option('--no-header', 'Suppress the Task Master header banner')
+			.action(async (_options?: { header?: boolean }) => {
 				await this.executeLogout();
 			});
 	}
@@ -98,7 +110,8 @@ Examples:
 	private addStatusCommand(): void {
 		this.command('status')
 			.description('Display authentication status')
-			.action(async () => {
+			.option('--no-header', 'Suppress the Task Master header banner')
+			.action(async (_options?: { header?: boolean }) => {
 				await this.executeStatus();
 			});
 	}
@@ -109,19 +122,38 @@ Examples:
 	private addRefreshCommand(): void {
 		this.command('refresh')
 			.description('Refresh authentication token')
-			.action(async () => {
+			.option('--no-header', 'Suppress the Task Master header banner')
+			.action(async (_options?: { header?: boolean }) => {
 				await this.executeRefresh();
 			});
 	}
 
 	/**
-	 * Execute login command
+	 * Handle authentication errors with proper type safety
 	 */
-	private async executeLogin(token?: string, yes?: boolean): Promise<void> {
+	private handleAuthError(error: unknown): void {
+		if (error instanceof Error) {
+			displayError(error);
+		} else {
+			displayError(
+				new Error(String(error ?? 'An unknown authentication error occurred'))
+			);
+		}
+	}
+
+	/**
+	 * Execute login command
+	 * Exported for reuse by login.command.ts
+	 */
+	async executeLogin(
+		token?: string,
+		yes?: boolean,
+		showHeader = true
+	): Promise<void> {
 		try {
 			const result = token
-				? await this.performTokenAuth(token, yes)
-				: await this.performInteractiveAuth(yes);
+				? await this.performTokenAuth(token, yes, showHeader)
+				: await this.performInteractiveAuth(yes, showHeader);
 			this.setLastResult(result);
 
 			if (!result.success) {
@@ -133,15 +165,16 @@ Examples:
 			setTimeout(() => {
 				process.exit(0);
 			}, 100);
-		} catch (error: any) {
-			displayError(error);
+		} catch (error) {
+			this.handleAuthError(error);
 		}
 	}
 
 	/**
 	 * Execute logout command
+	 * Exported for reuse by logout.command.ts
 	 */
-	private async executeLogout(): Promise<void> {
+	async executeLogout(): Promise<void> {
 		try {
 			const result = await this.performLogout();
 			this.setLastResult(result);
@@ -149,8 +182,8 @@ Examples:
 			if (!result.success) {
 				process.exit(1);
 			}
-		} catch (error: any) {
-			displayError(error);
+		} catch (error) {
+			this.handleAuthError(error);
 		}
 	}
 
@@ -161,8 +194,8 @@ Examples:
 		try {
 			const result = await this.displayStatus();
 			this.setLastResult(result);
-		} catch (error: any) {
-			displayError(error);
+		} catch (error) {
+			this.handleAuthError(error);
 		}
 	}
 
@@ -177,8 +210,8 @@ Examples:
 			if (!result.success) {
 				process.exit(1);
 			}
-		} catch (error: any) {
-			displayError(error);
+		} catch (error) {
+			this.handleAuthError(error);
 		}
 	}
 
@@ -282,8 +315,9 @@ Examples:
 
 	/**
 	 * Perform logout
+	 * Exported for reuse by logout.command.ts
 	 */
-	private async performLogout(): Promise<AuthResult> {
+	async performLogout(): Promise<AuthResult> {
 		try {
 			await this.authManager.logout();
 			ui.displaySuccess('Successfully logged out');
@@ -348,9 +382,15 @@ Examples:
 
 	/**
 	 * Perform interactive authentication
+	 * Exported for reuse by login.command.ts
 	 */
-	private async performInteractiveAuth(yes?: boolean): Promise<AuthResult> {
-		ui.displayBanner('Task Master Authentication');
+	async performInteractiveAuth(
+		yes?: boolean,
+		showHeader = true
+	): Promise<AuthResult> {
+		if (showHeader) {
+			ui.displayBanner('Task Master Authentication');
+		}
 		const isAuthenticated = await this.authManager.hasValidSession();
 
 		// Check if already authenticated (skip if --yes is used)
@@ -387,7 +427,7 @@ Examples:
 			// Direct browser authentication - no menu needed
 			const credentials = await this.authenticateWithBrowser();
 
-			ui.displaySuccess('Authentication successful!');
+			// Display user info (auth success message is already shown by authenticateWithBrowserMFA)
 			console.log(
 				chalk.gray(`  Logged in as: ${credentials.email || credentials.userId}`)
 			);
@@ -450,55 +490,11 @@ Examples:
 
 	/**
 	 * Authenticate with browser using OAuth 2.0 with PKCE
+	 * Uses shared authenticateWithBrowserMFA for consistent login UX
+	 * across all commands (auth login, parse-prd, export, etc.)
 	 */
 	private async authenticateWithBrowser(): Promise<AuthCredentials> {
-		let authSpinner: Ora | null = null;
-
-		try {
-			// Use AuthManager's new unified OAuth flow method with callbacks
-			const credentials = await this.authManager.authenticateWithOAuth({
-				// Callback to handle browser opening
-				openBrowser: async (authUrl) => {
-					await open(authUrl);
-				},
-				timeout: 5 * 60 * 1000, // 5 minutes
-
-				// Callback when auth URL is ready
-				onAuthUrl: (authUrl) => {
-					// Display authentication instructions
-					console.log(chalk.blue.bold('\n🔐 Browser Authentication\n'));
-					console.log(chalk.white('  Opening your browser to authenticate...'));
-					console.log(chalk.gray("  If the browser doesn't open, visit:"));
-					console.log(chalk.cyan.underline(`  ${authUrl}\n`));
-				},
-
-				// Callback when waiting for authentication
-				onWaitingForAuth: () => {
-					authSpinner = ora({
-						text: 'Waiting for authentication...',
-						spinner: 'dots'
-					}).start();
-				},
-
-				// Callback on success
-				onSuccess: () => {
-					if (authSpinner) {
-						authSpinner.succeed('Authentication successful!');
-					}
-				},
-
-				// Callback on error
-				onError: () => {
-					if (authSpinner) {
-						authSpinner.fail('Authentication failed');
-					}
-				}
-			});
-
-			return credentials;
-		} catch (error) {
-			throw error;
-		}
+		return authenticateWithBrowserMFA(this.authManager);
 	}
 
 	/**
@@ -512,9 +508,49 @@ Examples:
 			spinner.succeed('Successfully authenticated!');
 			return credentials;
 		} catch (error) {
+			// Check if MFA is required BEFORE showing failure message
+			if (
+				error instanceof AuthenticationError &&
+				error.code === 'MFA_REQUIRED'
+			) {
+				// Stop spinner without showing failure - MFA is required, not a failure
+				spinner.stop();
+
+				if (!error.mfaChallenge?.factorId) {
+					throw new AuthenticationError(
+						'MFA challenge information missing',
+						'MFA_VERIFICATION_FAILED'
+					);
+				}
+
+				// Use shared MFA flow handler
+				return this.handleMFAVerification(error);
+			}
+
+			// Only show "Authentication failed" for actual failures
 			spinner.fail('Authentication failed');
 			throw error;
 		}
+	}
+
+	/**
+	 * Handle MFA verification flow
+	 * Uses shared MFA utilities from auth-ui.ts
+	 */
+	private async handleMFAVerification(
+		mfaError: AuthenticationError
+	): Promise<AuthCredentials> {
+		if (!mfaError.mfaChallenge?.factorId) {
+			throw new AuthenticationError(
+				'MFA challenge information missing',
+				'MFA_VERIFICATION_FAILED'
+			);
+		}
+
+		return handleMFAFlow(
+			this.authManager.verifyMFAWithRetry.bind(this.authManager),
+			mfaError.mfaChallenge.factorId
+		);
 	}
 
 	/**
@@ -522,15 +558,18 @@ Examples:
 	 */
 	private async performTokenAuth(
 		token: string,
-		yes?: boolean
+		yes?: boolean,
+		showHeader = true
 	): Promise<AuthResult> {
-		ui.displayBanner('Task Master Authentication');
+		if (showHeader) {
+			ui.displayBanner('Task Master Authentication');
+		}
 
 		try {
 			// Authenticate with the token
 			const credentials = await this.authenticateWithToken(token);
 
-			ui.displaySuccess('Authentication successful!');
+			// Display user info (auth success message is already shown by authenticateWithToken spinner)
 			console.log(
 				chalk.gray(`  Logged in as: ${credentials.email || credentials.userId}`)
 			);

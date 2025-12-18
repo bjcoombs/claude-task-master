@@ -9,8 +9,11 @@
  */
 
 import { join } from 'node:path';
-import { findProjectRoot } from '@tm/core';
+import { AuthManager, findProjectRoot } from '@tm/core';
+import { setSuppressConfigWarnings } from './modules/config-manager.js';
+
 import dotenv from 'dotenv';
+import { initializeSentry } from '../src/telemetry/sentry.js';
 
 // Store the original working directory
 // This is needed for commands that take relative paths as arguments
@@ -23,12 +26,28 @@ const projectRoot = findProjectRoot();
 // Load .env from project root without changing cwd
 dotenv.config({ path: join(projectRoot, '.env') });
 
+// Initialize Sentry after .env is loaded
+initializeSentry({ projectRoot });
+
 // Make original cwd available to commands that need it
 process.env.TASKMASTER_ORIGINAL_CWD = originalCwd;
 
 // Add at the very beginning of the file
 if (process.env.DEBUG === '1') {
 	console.error('DEBUG - dev.js received args:', process.argv.slice(2));
+}
+
+// Suppress config warnings if user is authenticated (API mode)
+// When authenticated, we don't need local config - everything is remote
+try {
+	const authManager = AuthManager.getInstance();
+	const hasValidSession = await authManager.hasValidSession();
+	if (hasValidSession) {
+		setSuppressConfigWarnings(true);
+	}
+} catch {
+	setSuppressConfigWarnings(false);
+	// Auth check failed, continue without suppressing
 }
 
 // Use dynamic import to ensure dotenv.config() runs before module-level code executes

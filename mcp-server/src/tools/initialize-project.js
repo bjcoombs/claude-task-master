@@ -1,11 +1,11 @@
-import { z } from 'zod';
 import {
 	createErrorResponse,
 	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
-import { initializeProjectDirect } from '../core/task-master-core.js';
+} from '@tm/mcp';
+import { z } from 'zod';
 import { RULE_PROFILES } from '../../../src/constants/profiles.js';
+import { initializeProjectDirect } from '../core/task-master-core.js';
 
 export function registerInitializeProjectTool(server) {
 	server.addTool({
@@ -24,7 +24,9 @@ export function registerInitializeProjectTool(server) {
 				.boolean()
 				.optional()
 				.default(true)
-				.describe('Add shell aliases (tm, taskmaster) to shell config file.'),
+				.describe(
+					'Add shell aliases (tm, taskmaster, hamster, ham) to shell config file.'
+				),
 			initGit: z
 				.boolean()
 				.optional()
@@ -65,13 +67,12 @@ export function registerInitializeProjectTool(server) {
 
 				const result = await initializeProjectDirect(args, log, { session });
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Initialization failed',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Initialization failed',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				const errorMessage = `Project initialization tool failed: ${error.message || 'Unknown error'}`;
 				log.error(errorMessage, error);

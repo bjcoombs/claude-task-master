@@ -3,14 +3,10 @@
  * Get comprehensive workflow status and progress information
  */
 
-import { z } from 'zod';
-import {
-	handleApiResult,
-	withNormalizedProjectRoot
-} from '../../shared/utils.js';
-import type { MCPContext } from '../../shared/types.js';
-import { WorkflowService } from '@tm/core';
 import type { FastMCP } from 'fastmcp';
+import { z } from 'zod';
+import type { ToolContext } from '../../shared/types.js';
+import { handleApiResult, withToolContext } from '../../shared/utils.js';
 
 const StatusSchema = z.object({
 	projectRoot: z
@@ -29,17 +25,16 @@ export function registerAutopilotStatusTool(server: FastMCP) {
 		description:
 			'Get comprehensive workflow status including current phase, progress, subtask details, and activity history.',
 		parameters: StatusSchema,
-		execute: withNormalizedProjectRoot(
-			async (args: StatusArgs, context: MCPContext) => {
+		execute: withToolContext(
+			'autopilot-status',
+			async (args: StatusArgs, { log, tmCore }: ToolContext) => {
 				const { projectRoot } = args;
 
 				try {
-					context.log.info(`Getting workflow status for ${projectRoot}`);
-
-					const workflowService = new WorkflowService(projectRoot);
+					log.info(`Getting workflow status for ${projectRoot}`);
 
 					// Check if workflow exists
-					if (!(await workflowService.hasWorkflow())) {
+					if (!(await tmCore.workflow.hasWorkflow())) {
 						return handleApiResult({
 							result: {
 								success: false,
@@ -48,33 +43,31 @@ export function registerAutopilotStatusTool(server: FastMCP) {
 										'No active workflow found. Start a workflow with autopilot_start'
 								}
 							},
-							log: context.log,
+							log,
 							projectRoot
 						});
 					}
 
 					// Resume to load state
-					await workflowService.resumeWorkflow();
+					await tmCore.workflow.resume();
 
 					// Get status
-					const status = workflowService.getStatus();
+					const status = tmCore.workflow.getStatus();
 
-					context.log.info(
-						`Workflow status retrieved for task ${status.taskId}`
-					);
+					log.info(`Workflow status retrieved for task ${status.taskId}`);
 
 					return handleApiResult({
 						result: {
 							success: true,
 							data: status
 						},
-						log: context.log,
+						log,
 						projectRoot
 					});
 				} catch (error: any) {
-					context.log.error(`Error in autopilot-status: ${error.message}`);
+					log.error(`Error in autopilot-status: ${error.message}`);
 					if (error.stack) {
-						context.log.debug(error.stack);
+						log.debug(error.stack);
 					}
 					return handleApiResult({
 						result: {
@@ -83,7 +76,7 @@ export function registerAutopilotStatusTool(server: FastMCP) {
 								message: `Failed to get workflow status: ${error.message}`
 							}
 						},
-						log: context.log,
+						log,
 						projectRoot
 					});
 				}

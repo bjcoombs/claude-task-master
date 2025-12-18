@@ -7,7 +7,7 @@
 ```bash
 # Project Setup
 task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
+task-master parse-prd .taskmaster/docs/prd.md       # Generate tasks from PRD document
 task-master models --setup                        # Configure AI models interactively
 
 # Daily Development Workflow
@@ -32,7 +32,6 @@ task-master expand --all --research               # Expand all eligible tasks
 task-master add-dependency --id=<id> --depends-on=<id>       # Add task dependency
 task-master move --from=<id> --to=<id>                       # Reorganize task hierarchy
 task-master validate-dependencies                            # Check for dependency issues
-task-master generate                                         # Update task markdown files (usually auto-called)
 ```
 
 ## Key Files & Project Structure
@@ -41,9 +40,14 @@ task-master generate                                         # Update task markd
 
 - `.taskmaster/tasks/tasks.json` - Main task data file (auto-managed)
 - `.taskmaster/config.json` - AI model configuration (use `task-master models` to modify)
-- `.taskmaster/docs/prd.txt` - Product Requirements Document for parsing
+- `.taskmaster/docs/prd.md` - Product Requirements Document for parsing (`.md` extension recommended for better editor support)
 - `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
 - `.env` - API keys for CLI usage
+
+**PRD File Format:** While both `.txt` and `.md` extensions work, **`.md` is recommended** because:
+- Markdown syntax highlighting in editors improves readability
+- Proper rendering when previewing in VS Code, GitHub, or other tools
+- Better collaboration through formatted documentation
 
 ### Claude Code Integration Files
 
@@ -62,11 +66,11 @@ project/
 │   │   ├── task-1.md      # Individual task files
 │   │   └── task-2.md
 │   ├── docs/              # Documentation directory
-│   │   ├── prd.txt        # Product requirements
+│   │   ├── prd.md         # Product requirements (.md recommended)
 │   ├── reports/           # Analysis reports directory
 │   │   └── task-complexity-report.json
 │   ├── templates/         # Template files
-│   │   └── example_prd.txt  # Example PRD template
+│   │   └── example_prd.md  # Example PRD template (.md recommended)
 │   └── config.json        # AI models & settings
 ├── .claude/
 │   ├── settings.json      # Claude Code configuration
@@ -87,6 +91,7 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
       "command": "npx",
       "args": ["-y", "task-master-ai"],
       "env": {
+        "TASK_MASTER_TOOLS": "core",
         "ANTHROPIC_API_KEY": "your_key_here",
         "PERPLEXITY_API_KEY": "your_key_here",
         "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
@@ -101,6 +106,24 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
   }
 }
 ```
+
+### MCP Tool Tiers
+
+Task Master uses tiered tool loading to optimize context window usage:
+
+| Tier | Tools | Use Case |
+|------|-------|----------|
+| `core` | 7 | Minimal daily workflow tools (default) |
+| `standard` | 14 | Common task management |
+| `all` | 44+ | Full suite with research, autopilot, dependencies |
+
+**Core tools (7):** `get_tasks`, `next_task`, `get_task`, `set_task_status`, `update_subtask`, `parse_prd`, `expand_task`
+
+**Standard adds (7 more):** `initialize_project`, `analyze_project_complexity`, `expand_all`, `add_subtask`, `remove_task`, `add_task`, `complexity_report`
+
+**All tier adds:** Dependency management, tag management, research, autopilot TDD workflow, scope up/down, models, rules
+
+**To upgrade tiers:** Change `TASK_MASTER_TOOLS` in `.mcp.json` from `"core"` to `"standard"` or `"all"` and restart the MCP connection.
 
 ### Essential MCP Tools
 
@@ -138,8 +161,8 @@ complexity_report; // = task-master complexity-report
 # Initialize Task Master
 task-master init
 
-# Create or obtain PRD, then parse it
-task-master parse-prd .taskmaster/docs/prd.txt
+# Create or obtain PRD, then parse it (use .md extension for better editor support)
+task-master parse-prd .taskmaster/docs/prd.md
 
 # Analyze complexity and expand tasks
 task-master analyze-complexity --research
@@ -361,9 +384,6 @@ task-master models --set-fallback gpt-4o-mini
 ### Task File Sync Issues
 
 ```bash
-# Regenerate task files from tasks.json
-task-master generate
-
 # Fix dependency issues
 task-master fix-dependencies
 ```
@@ -389,8 +409,6 @@ These commands make AI calls and may take up to a minute:
 
 - Never manually edit `tasks.json` - use commands instead
 - Never manually edit `.taskmaster/config.json` - use `task-master models`
-- Task markdown files in `tasks/` are auto-generated
-- Run `task-master generate` after manual changes to tasks.json
 
 ### Claude Code Session Management
 

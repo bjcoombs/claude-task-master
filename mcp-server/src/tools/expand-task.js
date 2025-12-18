@@ -3,18 +3,18 @@
  * Tool to expand a task into subtasks
  */
 
-import { z } from 'zod';
 import {
-	handleApiResult,
 	createErrorResponse,
+	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import { expandTaskDirect } from '../core/task-master-core.js';
 import {
-	findTasksPath,
-	findComplexityReportPath
+	findComplexityReportPath,
+	findTasksPath
 } from '../core/utils/path-utils.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the expand-task tool with the MCP server
@@ -94,13 +94,12 @@ export function registerExpandTaskTool(server) {
 					{ session }
 				);
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error expanding task',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error expanding task',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error in expand-task tool: ${error.message}`);
 				return createErrorResponse(error.message);

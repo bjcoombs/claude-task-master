@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import { getRulesProfile } from '../../../src/utils/rule-transformer.js';
 import { geminiProfile } from '../../../src/profiles/gemini.js';
+import { getRulesProfile } from '../../../src/utils/rule-transformer.js';
 
 describe('Rule Transformer - Gemini Profile', () => {
 	test('should have correct profile configuration', () => {
@@ -21,8 +21,15 @@ describe('Rule Transformer - Gemini Profile', () => {
 		});
 	});
 
-	test('should have minimal profile implementation', () => {
-		// Verify that gemini.js is minimal (no lifecycle functions)
+	test('should have declarative slashCommands config', () => {
+		// Gemini has a slash command profile in @tm/profiles, so base-profile.js
+		// includes a declarative slashCommands config (execution handled by rule-transformer)
+		expect(geminiProfile.slashCommands).toBeDefined();
+		expect(geminiProfile.slashCommands.profile).toBeDefined();
+		expect(geminiProfile.slashCommands.profile.supportsCommands).toBe(true);
+		expect(geminiProfile.slashCommands.commands).toBeDefined();
+		expect(Array.isArray(geminiProfile.slashCommands.commands)).toBe(true);
+		// Gemini doesn't define custom lifecycle hooks
 		expect(geminiProfile.onAddRulesProfile).toBeUndefined();
 		expect(geminiProfile.onRemoveRulesProfile).toBeUndefined();
 		expect(geminiProfile.onPostConvertRulesProfile).toBeUndefined();

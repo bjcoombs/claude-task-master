@@ -4,8 +4,8 @@
 
 import { jest } from '@jest/globals';
 import {
-	sampleTasks,
-	crossLevelDependencyTasks
+	crossLevelDependencyTasks,
+	sampleTasks
 } from '../fixtures/sample-tasks.js';
 
 // Create mock functions that we can control in tests
@@ -58,21 +58,17 @@ jest.mock('boxen', () => jest.fn((text) => `[boxed: ${text}]`));
 
 // Now import SUT after mocks are in place
 import {
-	validateTaskDependencies,
-	isCircularDependency,
-	removeDuplicateDependencies,
+	canMoveWithDependencies,
 	cleanupSubtaskDependencies,
 	ensureAtLeastOneIndependentSubtask,
+	isCircularDependency,
+	removeDuplicateDependencies,
 	validateAndFixDependencies,
-	canMoveWithDependencies
+	validateTaskDependencies
 } from '../../scripts/modules/dependency-manager.js';
 
 jest.mock('../../scripts/modules/ui.js', () => ({
 	displayBanner: jest.fn()
-}));
-
-jest.mock('../../scripts/modules/task-manager.js', () => ({
-	generateTaskFiles: jest.fn()
 }));
 
 // Use a temporary path for test files - Jest will clean up the temp directory
@@ -991,10 +987,6 @@ describe('Dependency Manager Module', () => {
 			await jest.unstable_mockModule('../../scripts/modules/ui.js', () => ({
 				displayBanner: jest.fn()
 			}));
-			await jest.unstable_mockModule(
-				'../../scripts/modules/task-manager/generate-task-files.js',
-				() => ({ default: jest.fn() })
-			);
 			// Set up test data that matches the issue report
 			// Clone fixture data before each test to prevent mutation issues
 			mockReadJSON.mockImplementation(() =>

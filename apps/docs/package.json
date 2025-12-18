@@ -1,6 +1,6 @@
 {
 	"name": "docs",
-	"version": "0.0.9",
+	"version": "0.0.14",
 	"private": true,
 	"description": "Task Master documentation powered by Mintlify",
 	"scripts": {
@@ -8,6 +8,6 @@
 		"preview": "mintlify preview"
 	},
 	"devDependencies": {
-		"mintlify": "^4.2.111"
+		"mintlify": "^4.2.243"
 	}
 }

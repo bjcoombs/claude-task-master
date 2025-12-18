@@ -2,9 +2,9 @@
  * Integration test for direct function imports in MCP server
  */
 
-import { jest } from '@jest/globals';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { jest } from '@jest/globals';
 
 // Get the current module's directory
 const __filename = fileURLToPath(import.meta.url);
@@ -111,7 +111,6 @@ const mockExpandTask = jest
 		}
 	);
 
-const mockGenerateTaskFiles = jest.fn().mockResolvedValue(true);
 const mockFindTaskById = jest.fn();
 const mockTaskExists = jest.fn().mockReturnValue(true);
 
@@ -155,7 +154,6 @@ jest.mock('../../../scripts/modules/ai-services-unified.js', () => ({
 // Mock task-manager.js to avoid real operations
 jest.mock('../../../scripts/modules/task-manager.js', () => ({
 	expandTask: mockExpandTask,
-	generateTaskFiles: mockGenerateTaskFiles,
 	findTaskById: mockFindTaskById,
 	taskExists: mockTaskExists
 }));

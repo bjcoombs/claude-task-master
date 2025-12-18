@@ -18,24 +18,54 @@ permissions:
 env:
   DO_NOT_TRACK: 1
   NODE_ENV: development
+  NODE_VERSION: 20
 
 jobs:
+  # Single install job that caches node_modules for all other jobs
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+        timeout-minutes: 5
+
   # Fast checks that can run in parallel
   format-check:
     name: Format Check
     runs-on: ubuntu-latest
+    needs: install
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
-        run: npm install --frozen-lockfile --prefer-offline
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
         timeout-minutes: 5
 
       - name: Format Check
@@ -43,22 +73,59 @@ jobs:
         env:
           FORCE_COLOR: 1
 
-  typecheck:
-    name: Typecheck
-    timeout-minutes: 10
+  changeset-validation:
+    name: Validate Changesets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            changesets:
+              - '.changeset/**'
+              - '.github/scripts/validate-changesets.mjs'
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.changesets == 'true'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Validate changeset package references
+        if: steps.changes.outputs.changesets == 'true'
+        run: |
+          # Validate that changesets only reference public packages
+          # This catches issues like using @tm/cli instead of task-master-ai
+          node .github/scripts/validate-changesets.mjs
+        env:
+          FORCE_COLOR: 1
+
+  typecheck:
+    name: Typecheck
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
-        run: npm install --frozen-lockfile --prefer-offline
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
         timeout-minutes: 5
 
       - name: Typecheck
@@ -70,18 +137,24 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: install
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
-        run: npm install --frozen-lockfile --prefer-offline
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
         timeout-minutes: 5
 
       - name: Build
@@ -104,19 +177,25 @@ jobs:
     name: Test
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    needs: [format-check, typecheck, build]
+    needs: [format-check, typecheck, build, changeset-validation]
+    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules cache
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
-        run: npm install --frozen-lockfile --prefer-offline
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
         timeout-minutes: 5
 
       - name: Download build artifacts

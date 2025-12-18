@@ -3,14 +3,14 @@
  * Tool to perform AI-powered research queries with project context
  */
 
-import { z } from 'zod';
 import {
 	createErrorResponse,
 	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
-import { researchDirect } from '../core/task-master-core.js';
+} from '@tm/mcp';
+import { z } from 'zod';
 import { resolveTag } from '../../../scripts/modules/utils.js';
+import { researchDirect } from '../core/task-master-core.js';
 
 /**
  * Register the research tool with the MCP server
@@ -94,13 +94,12 @@ export function registerResearchTool(server) {
 					{ session }
 				);
 
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error performing research',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error performing research',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(`Error in research tool: ${error.message}`);
 				return createErrorResponse(error.message);

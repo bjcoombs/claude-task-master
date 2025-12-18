@@ -2,27 +2,21 @@
   "mode": "exit",
   "tag": "rc",
   "initialVersions": {
-    "task-master-ai": "0.31.2",
+    "task-master-ai": "0.38.0",
     "@tm/cli": "",
-    "docs": "0.0.9",
-    "extension": "0.25.6",
+    "docs": "0.0.14",
+    "extension": "0.26.0",
     "@tm/mcp": "",
     "@tm/ai-sdk-provider-grok-cli": "",
     "@tm/build-config": "",
-    "@tm/claude-code-plugin": "0.0.4",
+    "@tm/claude-code-plugin": "0.0.8",
     "@tm/bridge": "",
-    "@tm/core": ""
+    "@tm/core": "",
+    "@tm/profiles": ""
   },
   "changesets": [
-    "five-areas-heal",
-    "fix-cancelled-completion",
-    "fix-complexity-prompt-json-output",
-    "fix-emoji-box-titles",
-    "fix-taskmaster-parent-priority",
-    "light-crews-guess",
-    "petite-news-build",
-    "proxy-support-for-ai-providers",
-    "salty-ways-deny",
-    "stupid-comics-pull"
+    "clever-moments-find",
+    "light-trees-deny",
+    "yummy-nights-repeat"
   ]
 }

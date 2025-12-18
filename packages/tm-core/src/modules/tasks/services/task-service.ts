@@ -170,16 +170,13 @@ export class TaskService {
 				storageType
 			};
 		} catch (error) {
-			// If it's a user-facing error (like NO_BRIEF_SELECTED), don't log it as an internal error
-			if (
-				error instanceof TaskMasterError &&
-				error.is(ERROR_CODES.NO_BRIEF_SELECTED)
-			) {
-				// Just re-throw user-facing errors without wrapping
+			// Re-throw all TaskMasterErrors without wrapping
+			// These errors are already user-friendly and have appropriate error codes
+			if (error instanceof TaskMasterError) {
 				throw error;
 			}
 
-			// Log internal errors
+			// Only wrap unknown errors
 			this.logger.error('Failed to get task list', error);
 			throw new TaskMasterError(
 				'Failed to get task list',
@@ -205,11 +202,8 @@ export class TaskService {
 			// Delegate to storage layer which handles the specific logic for tasks vs subtasks
 			return await this.storage.loadTask(String(taskId), activeTag);
 		} catch (error) {
-			// If it's a user-facing error (like NO_BRIEF_SELECTED), don't wrap it
-			if (
-				error instanceof TaskMasterError &&
-				error.is(ERROR_CODES.NO_BRIEF_SELECTED)
-			) {
+			// Re-throw all TaskMasterErrors without wrapping
+			if (error instanceof TaskMasterError) {
 				throw error;
 			}
 
@@ -510,8 +504,19 @@ export class TaskService {
 
 	/**
 	 * Get current active tag
+	 * For API storage, uses the brief ID from auth context
+	 * For file storage, uses the tag from local config/state
 	 */
 	getActiveTag(): string {
+		// For API storage, use brief ID from auth context if available
+		if (this.initialized && this.getStorageType() === 'api') {
+			const briefName = this.storage.getCurrentBriefName();
+			if (briefName) {
+				return briefName;
+			}
+		}
+
+		// Fall back to config-based tag resolution
 		return this.configManager.getActiveTag();
 	}
 
@@ -554,11 +559,8 @@ export class TaskService {
 			// Direct update - no AI processing
 			await this.storage.updateTask(taskIdStr, updates, activeTag);
 		} catch (error) {
-			// If it's a user-facing error (like NO_BRIEF_SELECTED), don't wrap it
-			if (
-				error instanceof TaskMasterError &&
-				error.is(ERROR_CODES.NO_BRIEF_SELECTED)
-			) {
+			// Re-throw all TaskMasterErrors without wrapping
+			if (error instanceof TaskMasterError) {
 				throw error;
 			}
 
@@ -744,11 +746,8 @@ export class TaskService {
 				activeTag
 			);
 		} catch (error) {
-			// If it's a user-facing error (like NO_BRIEF_SELECTED), don't wrap it
-			if (
-				error instanceof TaskMasterError &&
-				error.is(ERROR_CODES.NO_BRIEF_SELECTED)
-			) {
+			// Re-throw all TaskMasterErrors without wrapping
+			if (error instanceof TaskMasterError) {
 				throw error;
 			}
 
@@ -788,11 +787,8 @@ export class TaskService {
 		try {
 			return await this.storage.getTagsWithStats();
 		} catch (error) {
-			// If it's a user-facing error (like NO_BRIEF_SELECTED), don't wrap it
-			if (
-				error instanceof TaskMasterError &&
-				error.is(ERROR_CODES.NO_BRIEF_SELECTED)
-			) {
+			// Re-throw all TaskMasterErrors without wrapping
+			if (error instanceof TaskMasterError) {
 				throw error;
 			}
 
@@ -806,5 +802,16 @@ export class TaskService {
 				error as Error
 			);
 		}
+	}
+
+	/**
+	 * Close and cleanup resources
+	 * Releases file locks and other storage resources
+	 */
+	async close(): Promise<void> {
+		if (this.storage) {
+			await this.storage.close();
+		}
+		this.initialized = false;
 	}
 }

@@ -1,6 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+	ALL_PROVIDERS,
+	AuthManager,
+	CUSTOM_PROVIDERS,
+	CUSTOM_PROVIDERS_ARRAY,
+	VALIDATED_PROVIDERS
+} from '@tm/core';
 import chalk from 'chalk';
 import { z } from 'zod';
 import { AI_COMMAND_NAMES } from '../../src/constants/commands.js';
@@ -8,15 +15,9 @@ import {
 	LEGACY_CONFIG_FILE,
 	TASKMASTER_DIR
 } from '../../src/constants/paths.js';
-import {
-	ALL_PROVIDERS,
-	CUSTOM_PROVIDERS,
-	CUSTOM_PROVIDERS_ARRAY,
-	VALIDATED_PROVIDERS
-} from '@tm/core';
 import { findConfigPath } from '../../src/utils/path-utils.js';
-import { findProjectRoot, isEmpty, log, resolveEnvVariable } from './utils.js';
 import MODEL_MAP from './supported-models.json' with { type: 'json' };
+import { findProjectRoot, isEmpty, log, resolveEnvVariable } from './utils.js';
 
 // Calculate __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +57,8 @@ const DEFAULTS = {
 		bedrockBaseURL: 'https://bedrock.us-east-1.amazonaws.com',
 		responseLanguage: 'English',
 		enableCodebaseAnalysis: true,
-		enableProxy: false
+		enableProxy: false,
+		anonymousTelemetry: true // Allow users to opt out of Sentry telemetry for local storage
 	},
 	claudeCode: {},
 	codexCli: {},
@@ -71,6 +73,23 @@ const DEFAULTS = {
 let loadedConfig = null;
 let loadedConfigRoot = null; // Track which root loaded the config
 
+/**
+ * Suppress config file warnings (useful during API mode detection)
+ * Uses global object so it can be shared across modules without circular deps
+ * @param {boolean} suppress - Whether to suppress warnings
+ */
+export function setSuppressConfigWarnings(suppress) {
+	global._tmSuppressConfigWarnings = suppress;
+}
+
+/**
+ * Check if config warnings are currently suppressed
+ * @returns {boolean}
+ */
+export function isConfigWarningSuppressed() {
+	return global._tmSuppressConfigWarnings === true;
+}
+
 // Custom Error for configuration issues
 class ConfigurationError extends Error {
 	constructor(message) {
@@ -79,9 +98,10 @@ class ConfigurationError extends Error {
 	}
 }
 
-function _loadAndValidateConfig(explicitRoot = null) {
+function _loadAndValidateConfig(explicitRoot = null, options = {}) {
 	const defaults = DEFAULTS; // Use the defined defaults
 	let rootToUse = explicitRoot;
+	const { storageType } = options;
 	let configSource = explicitRoot
 		? `explicit root (${explicitRoot})`
 		: 'defaults (no root provided yet)';
@@ -113,7 +133,7 @@ function _loadAndValidateConfig(explicitRoot = null) {
 	if (hasProjectMarkers) {
 		// Only try to find config if we have project markers
 		// This prevents the repeated warnings during init
-		configPath = findConfigPath(null, { projectRoot: rootToUse });
+		configPath = findConfigPath(null, { projectRoot: rootToUse, storageType });
 	}
 
 	if (configPath) {
@@ -202,29 +222,36 @@ function _loadAndValidateConfig(explicitRoot = null) {
 		}
 	} else {
 		// Config file doesn't exist at the determined rootToUse.
-		if (explicitRoot) {
-			// Only warn if an explicit root was *expected*.
-			console.warn(
-				chalk.yellow(
-					`Warning: Configuration file not found at provided project root (${explicitRoot}). Using default configuration. Run 'task-master models --setup' to configure.`
-				)
-			);
-		} else {
-			// Don't warn about missing config during initialization
-			// Only warn if this looks like an existing project (has .taskmaster dir or legacy config marker)
-			const hasTaskmasterDir = fs.existsSync(
-				path.join(rootToUse, TASKMASTER_DIR)
-			);
-			const hasLegacyMarker = fs.existsSync(
-				path.join(rootToUse, LEGACY_CONFIG_FILE)
-			);
+		// Skip warnings if:
+		// 1. Global suppress flag is set (during API mode detection)
+		// 2. storageType is explicitly 'api' (remote storage mode - no local config expected)
+		const shouldWarn = !isConfigWarningSuppressed() && storageType !== 'api';
 
-			if (hasTaskmasterDir || hasLegacyMarker) {
+		if (shouldWarn) {
+			if (explicitRoot) {
+				// Warn about explicit root not having config
 				console.warn(
 					chalk.yellow(
-						`Warning: Configuration file not found at derived root (${rootToUse}). Using defaults.`
+						`Warning: Configuration file not found at provided project root (${explicitRoot}). Using default configuration. Run 'task-master models --setup' to configure.`
 					)
 				);
+			} else {
+				// Don't warn about missing config during initialization
+				// Only warn if this looks like an existing project (has .taskmaster dir or legacy config marker)
+				const hasTaskmasterDir = fs.existsSync(
+					path.join(rootToUse, TASKMASTER_DIR)
+				);
+				const hasLegacyMarker = fs.existsSync(
+					path.join(rootToUse, LEGACY_CONFIG_FILE)
+				);
+
+				if (hasTaskmasterDir || hasLegacyMarker) {
+					console.warn(
+						chalk.yellow(
+							`Warning: Configuration file not found at derived root (${rootToUse}). Using defaults.`
+						)
+					);
+				}
 			}
 		}
 		// Keep config as defaults
@@ -240,9 +267,11 @@ function _loadAndValidateConfig(explicitRoot = null) {
  * Handles MCP initialization context gracefully.
  * @param {string|null} explicitRoot - Optional explicit path to the project root.
  * @param {boolean} forceReload - Force reloading the config file.
+ * @param {object} options - Optional configuration options.
+ * @param {'api'|'file'|'auto'} [options.storageType] - Storage type to suppress warnings for API mode.
  * @returns {object} The loaded configuration object.
  */
-function getConfig(explicitRoot = null, forceReload = false) {
+function getConfig(explicitRoot = null, forceReload = false, options = {}) {
 	// Determine if a reload is necessary
 	const needsLoad =
 		!loadedConfig ||
@@ -250,7 +279,7 @@ function getConfig(explicitRoot = null, forceReload = false) {
 		(explicitRoot && explicitRoot !== loadedConfigRoot);
 
 	if (needsLoad) {
-		const newConfig = _loadAndValidateConfig(explicitRoot); // _load handles null explicitRoot
+		const newConfig = _loadAndValidateConfig(explicitRoot, options); // _load handles null explicitRoot
 
 		// Only update the global cache if loading was forced or if an explicit root
 		// was provided (meaning we attempted to load a specific project's config).
@@ -410,7 +439,10 @@ function validateCodexCliSettings(settings) {
 		outputLastMessageFile: z.string().optional(),
 		env: z.record(z.string(), z.string()).optional(),
 		verbose: z.boolean().optional(),
-		logger: z.union([z.object({}).passthrough(), z.literal(false)]).optional()
+		logger: z.union([z.object({}).passthrough(), z.literal(false)]).optional(),
+		reasoningEffort: z
+			.enum(['none', 'minimal', 'low', 'medium', 'high', 'xhigh'])
+			.optional()
 	});
 
 	const CommandSpecificSchema = z
@@ -707,6 +739,12 @@ function getCodebaseAnalysisEnabled(explicitRoot = null) {
 function getProxyEnabled(explicitRoot = null) {
 	// Return boolean-safe value with default false
 	return getGlobalConfig(explicitRoot).enableProxy === true;
+}
+
+function getAnonymousTelemetryEnabled(explicitRoot = null) {
+	// Return boolean-safe value with default true (opt-in by default)
+	const config = getGlobalConfig(explicitRoot);
+	return config.anonymousTelemetry !== false; // Default true if undefined
 }
 
 function isProxyEnabled(session = null, projectRoot = null) {
@@ -1152,6 +1190,51 @@ function getBaseUrlForRole(role, explicitRoot = null) {
 	return undefined;
 }
 
+/**
+ * Get the operating mode for rules/commands filtering.
+ * Priority order:
+ * 1. Explicit CLI flag (--mode=solo|team)
+ * 2. Config file (storage.operatingMode)
+ * 3. Auth status fallback (authenticated = team, else solo)
+ *
+ * @param {string|undefined} explicitMode - Mode passed via CLI flag
+ * @returns {Promise<'solo'|'team'>} The operating mode
+ */
+async function getOperatingMode(explicitMode) {
+	// 1. CLI flag takes precedence
+	if (explicitMode === 'solo' || explicitMode === 'team') {
+		return explicitMode;
+	}
+
+	// 2. Check config file for operatingMode
+	try {
+		setSuppressConfigWarnings(true);
+		const config = getConfig(null, false, { storageType: 'api' });
+		if (config?.storage?.operatingMode) {
+			return config.storage.operatingMode;
+		}
+	} catch {
+		// Config check failed, continue to fallback
+	} finally {
+		setSuppressConfigWarnings(false);
+	}
+
+	// 3. Fallback: Check auth status
+	// If authenticated with Hamster, assume team mode
+	try {
+		const authManager = AuthManager.getInstance();
+		const credentials = await authManager.getAuthCredentials();
+		if (credentials) {
+			return 'team';
+		}
+	} catch {
+		// Auth check failed, default to solo
+	}
+
+	// Default to solo mode
+	return 'solo';
+}
+
 // Export the providers without API keys array for use in other modules
 export const providersWithoutApiKeys = [
 	CUSTOM_PROVIDERS.OLLAMA,
@@ -1217,8 +1300,11 @@ export {
 	isCodebaseAnalysisEnabled,
 	getProxyEnabled,
 	isProxyEnabled,
+	getAnonymousTelemetryEnabled,
 	getParametersForRole,
 	getUserId,
+	// Operating mode
+	getOperatingMode,
 	// API Key Checkers (still relevant)
 	isApiKeySet,
 	getMcpApiKeyStatus,

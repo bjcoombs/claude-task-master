@@ -3,15 +3,15 @@
  * Tool to update tasks based on new context/prompt
  */
 
-import { z } from 'zod';
 import {
-	handleApiResult,
 	createErrorResponse,
+	handleApiResult,
 	withNormalizedProjectRoot
-} from './utils.js';
+} from '@tm/mcp';
+import { z } from 'zod';
+import { resolveTag } from '../../../scripts/modules/utils.js';
 import { updateTasksDirect } from '../core/task-master-core.js';
 import { findTasksPath } from '../core/utils/path-utils.js';
-import { resolveTag } from '../../../scripts/modules/utils.js';
 
 /**
  * Register the update tool with the MCP server
@@ -88,13 +88,12 @@ export function registerUpdateTool(server) {
 				log.info(
 					`${toolName}: Direct function result: success=${result.success}`
 				);
-				return handleApiResult(
+				return handleApiResult({
 					result,
-					log,
-					'Error updating tasks',
-					undefined,
-					args.projectRoot
-				);
+					log: log,
+					errorPrefix: 'Error updating tasks',
+					projectRoot: args.projectRoot
+				});
 			} catch (error) {
 				log.error(
 					`Critical error in ${toolName} tool execute: ${error.message}`

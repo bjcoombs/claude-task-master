@@ -16,8 +16,8 @@ export type {
 	AuthCredentials,
 	OAuthFlowOptions,
 	AuthConfig,
-	CliData,
-	UserContext
+	UserContext,
+	MFAVerificationResult
 } from './types.js';
 
 export { AuthenticationError } from './types.js';
@@ -26,3 +26,23 @@ export {
 	DEFAULT_AUTH_CONFIG,
 	getAuthConfig
 } from './config.js';
+
+// Command guard types and utilities
+export { isLocalOnlyCommand, type AuthBlockResult } from './command.guard.js';
+
+// Auth constants
+export {
+	AUTH_TIMEOUT_MS,
+	MFA_MAX_ATTEMPTS,
+	LOCAL_ONLY_COMMANDS,
+	type LocalOnlyCommand
+} from './constants.js';
+
+// Auth error utilities (shared with CLI)
+export {
+	isSupabaseAuthError,
+	AUTH_ERROR_MESSAGES,
+	RECOVERABLE_STALE_SESSION_ERRORS,
+	isRecoverableStaleSessionError,
+	toAuthenticationError
+} from './utils/index.js';
